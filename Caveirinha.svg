@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="24.648981mm"
+   height="32.023479mm"
+   viewBox="0 0 24.648981 32.023479"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="Caveirinha.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2.6191077"
+     inkscape:cx="47.535272"
+     inkscape:cy="97.170497"
+     inkscape:window-width="1920"
+     inkscape:window-height="974"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Camada 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-76.371432,-90.514287)">
+    <g
+       id="g4">
+      <ellipse
+         style="fill:#1a1a1a;stroke-width:0.295208"
+         id="path1"
+         ry="12.52653"
+         rx="12.324491"
+         cy="103.04082"
+         cx="88.695923" />
+      <rect
+         style="fill:#1a1a1a;stroke-width:0.264583"
+         id="rect1"
+         width="13.738775"
+         height="11.718368"
+         x="81.523468"
+         y="110.8194" />
+      <path
+         style="fill:#ffffff;stroke-width:0.264583"
+         id="path2"
+         sodipodi:type="arc"
+         sodipodi:cx="84.756119"
+         sodipodi:cy="101.22244"
+         sodipodi:rx="2.1214285"
+         sodipodi:ry="2.42449"
+         sodipodi:start="0"
+         sodipodi:end="6.2665485"
+         sodipodi:arc-type="slice"
+         d="m 86.877547,101.22244 a 2.1214285,2.42449 0 0 1 -2.112605,2.42447 2.1214285,2.42449 0 0 1 -2.130178,-2.4043 2.1214285,2.42449 0 0 1 2.094885,-2.444469 2.1214285,2.42449 0 0 1 2.147605,2.383969 l -2.121135,0.0403 z" />
+      <path
+         style="fill:#ffffff;stroke-width:0.264583"
+         id="path2-4"
+         sodipodi:type="arc"
+         sodipodi:cx="92.579208"
+         sodipodi:cy="101.27236"
+         sodipodi:rx="2.1214285"
+         sodipodi:ry="2.42449"
+         sodipodi:start="0"
+         sodipodi:end="6.2665485"
+         sodipodi:arc-type="slice"
+         d="m 94.700637,101.27236 a 2.1214285,2.42449 0 0 1 -2.112605,2.42447 2.1214285,2.42449 0 0 1 -2.130179,-2.4043 2.1214285,2.42449 0 0 1 2.094886,-2.444469 2.1214285,2.42449 0 0 1 2.147604,2.383969 l -2.121135,0.0403 z" />
+      <path
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 86.372448,110.71837 2.32347,-4.04082 2.22245,4.14184 z"
+         id="path3" />
+      <path
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 84.15,115.87041 0.101021,4.14183 h 1.818367 l -0.10102,-4.4449 z"
+         id="path4" />
+      <path
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 86.413412,115.86499 0.101021,4.14183 H 88.3328 l -0.10102,-4.4449 z"
+         id="path4-7" />
+      <path
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 88.621319,115.82663 0.101021,4.14183 h 1.818367 l -0.10102,-4.4449 z"
+         id="path4-7-2" />
+      <path
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 90.771828,115.80257 0.101021,4.14183 h 1.818367 l -0.10102,-4.4449 z"
+         id="path4-7-2-4" />
+    </g>
+  </g>
+</svg>

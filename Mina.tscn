@@ -1,0 +1,180 @@
+[gd_scene load_steps=7 format=3 uid="uid://cjdph7hq84wbd"]
+
+[ext_resource type="Texture2D" uid="uid://db85bw3vrk2fs" path="res://Caveirinha.svg" id="1_25xip"]
+
+[sub_resource type="GDScript" id="GDScript_tiu2u"]
+script/source = "extends Area2D
+
+@export var timer: Timer
+@export var animation_player: AnimationPlayer
+@export var sprite: Sprite2D
+
+var ativada = false
+
+func _ready():
+	print(\"--- Mina Pronta ---\") # Verifica se a mina foi carregada
+
+# Esta função é chamada pelo sinal \"body_entered\"
+func _on_body_entered(body):
+	
+	# PRINT 1: A DETECÇÃO ESTÁ FUNCIONANDO?
+	# Você verá isso no console toda vez que *qualquer coisa* tocar a mina.
+	print(\"ALGO ENTROU NA MINA! O nome é: \", body.name)
+
+	if ativada:
+		return
+		
+	# PRINT 2: A CONDIÇÃO IF ESTÁ FUNCIONANDO?
+	print(\"Checando se o corpo '\", body.name, \"' está no grupo 'Bigo'...\")
+	print(\"Resultado: \", body.is_in_group(\"Bigo\"))
+	
+	if (body.name == \"Bigo\") or (body.name == \"Marina\") or (body.name == \"Rafinha\"):
+		
+		# PRINT 3: A MINA FOI ATIVADA?
+		print(\"!!! SUCESSO! Mina ativada pelo Bigo! Iniciando timer... !!!\")
+		body.queue_free()
+		ativada = true		
+		timer.start()
+
+# Esta função é chamada pelo sinal \"timeout\" do Timer
+func _on_timer_timeout(): # <-- ATENÇÃO AQUI! O 'T' é maiúsculo?
+	
+	# PRINT 4: O TIMER FUNCIONOU?
+	print(\"!!! KABOOM! Timer zerou, tocando explosão! !!!\")
+	
+	animation_player.play(\"Explodir\")
+	#Sumir com o BIgo
+
+	
+	#var corpos_na_area = get_overlapping_bodies()
+	#for body in corpos_na_area:
+	#	if body.is_in_group(\"Bigo\"):
+	#		if body.has_method(\"levar_dano\"):
+	#			body.levar_dano(100)
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gyyuv"]
+radius = 49.162994
+
+[sub_resource type="Animation" id="Animation_5dtjf"]
+resource_name = "Explodir"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.1),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.1, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_aded4"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_diosy"]
+_data = {
+&"Explodir": SubResource("Animation_5dtjf"),
+&"RESET": SubResource("Animation_aded4")
+}
+
+[node name="Mina" type="Area2D" node_paths=PackedStringArray("timer", "animation_player", "sprite")]
+script = SubResource("GDScript_tiu2u")
+timer = NodePath("Timer")
+animation_player = NodePath("AnimationPlayer")
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-2, -2)
+texture = ExtResource("1_25xip")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-3, -4)
+shape = SubResource("CircleShape2D_gyyuv")
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_diosy")
+}
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

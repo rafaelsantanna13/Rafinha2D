@@ -1,0 +1,261 @@
+[gd_scene load_steps=27 format=3 uid="uid://jd0pfwv661fa"]
+
+[ext_resource type="Script" uid="uid://cvqjpmri5f7nm" path="res://character_body_2d.gd" id="1_j1ic7"]
+[ext_resource type="Texture2D" uid="uid://ibgaypihpi6s" path="res://Ceu.svg" id="1_r867w"]
+[ext_resource type="Texture2D" uid="uid://dmys8ss2e6hcn" path="res://1760301079346.svg" id="1_s7je6"]
+[ext_resource type="Texture2D" uid="uid://du1kuit1i6u8u" path="res://Mato.svg" id="3_gm1qv"]
+[ext_resource type="Texture2D" uid="uid://w1gy7s3wygvx" path="res://Sansao.svg" id="4_gm1qv"]
+[ext_resource type="Texture2D" uid="uid://cmhrsxr1fmeyx" path="res://Personagens/Mar.svg" id="5_2m26s"]
+[ext_resource type="Texture2D" uid="uid://baarawnesqfne" path="res://Marina.svg" id="5_nlc3t"]
+[ext_resource type="Texture2D" uid="uid://b86tjgwvgkllt" path="res://Personagens/PranchaRafinha.svg" id="6_hcwst"]
+[ext_resource type="Texture2D" uid="uid://bfuhdt41nswyr" path="res://Bigo2.svg" id="7_gm1qv"]
+[ext_resource type="Texture2D" uid="uid://djx6ghg5u0o75" path="res://Sol.svg" id="7_nlc3t"]
+[ext_resource type="Texture2D" uid="uid://colj1knd6tw8d" path="res://Ilha.svg" id="9_hxyhm"]
+[ext_resource type="PackedScene" uid="uid://bife2infhwaxs" path="res://pum_bigo.tscn" id="10_kvo1h"]
+[ext_resource type="Texture2D" uid="uid://bmmo6slplgmht" path="res://Bigo1.svg" id="11_kvo1h"]
+[ext_resource type="PackedScene" uid="uid://cjdph7hq84wbd" path="res://Mina.tscn" id="14_33pbr"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_j1ic7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rcsj6"]
+size = Vector2(1144, 80.25)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_kvo1h"]
+a = Vector2(156, -700)
+b = Vector2(167, 244)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_hxyhm"]
+a = Vector2(3508, 570)
+b = Vector2(1073, 577)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_hcwst"]
+radius = 39.0
+height = 174.0
+
+[sub_resource type="GDScript" id="GDScript_2m26s"]
+script/source = "extends CharacterBody2D
+
+@onready var anim_pum = $PumBigo/AnimationPlayer
+
+const SPEED = 300.0
+const JUMP_VELOCITY = -400.0
+
+func tocar_pum():
+	anim_pum.play(\"aparecer_sumir\")
+
+func _physics_process(delta: float) -> void:
+	# Add the gravity.
+	if Input.is_action_just_pressed(\"Tecla_bigopum\"):
+		tocar_pum()
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+
+	# Handle jump.
+	if Input.is_action_just_pressed(\"Bigopula\") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions.
+	var direction := Input.get_axis(\"Bigoesquerda\", \"Bigodireita\")
+	if direction:
+		velocity.x = direction * SPEED
+	else:
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+
+	move_and_slide()
+"
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mqnvb"]
+height = 78.5
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mqnvb"]
+size = Vector2(164.20029, 28.008118)
+
+[sub_resource type="GDScript" id="GDScript_kvo1h"]
+script/source = "extends CharacterBody2D
+
+@export var atrito_agua=0.99
+@export var forca_vento=700.0
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+func _physics_process(delta: float):
+	velocity.x=velocity.x*atrito_agua
+	if abs(velocity.x)<1.0:
+		velocity.x=0
+	#if Input.is_action_just_pressed(\"Tecla_bigopum\"):
+	#	velocity.x=100 
+	#else:
+	#	velocity.x = move_toward(velocity.x,0,0.5)
+	
+		
+	move_and_slide()
+func ser_empurrado():
+	velocity.x=forca_vento
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hxyhm"]
+size = Vector2(74, 102)
+
+[sub_resource type="GDScript" id="GDScript_hxyhm"]
+script/source = "extends CharacterBody2D
+
+
+const SPEED = 300.0
+const JUMP_VELOCITY = -400.0
+
+
+func _physics_process(delta: float) -> void:
+	# Add the gravity.
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+
+	# Handle jump.
+	if Input.is_action_just_pressed(\"pulamarina\") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions.
+	var direction := Input.get_axis(\"esquerdamarina\", \"direitamarina\")
+	if direction:
+		velocity.x = direction * SPEED
+	else:
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+
+	move_and_slide()
+"
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_33pbr"]
+radius = 32.0
+height = 152.0
+
+[node name="MundoRafinha" type="Node2D"]
+position = Vector2(5, 89)
+
+[node name="Ceu" type="Sprite2D" parent="."]
+position = Vector2(1687, 199)
+scale = Vector2(6.4872265, 3.3092287)
+texture = ExtResource("1_r867w")
+
+[node name="Cenário" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Cenário"]
+material = SubResource("CanvasItemMaterial_j1ic7")
+position = Vector2(543, 601.875)
+shape = SubResource("RectangleShape2D_rcsj6")
+debug_color = Color(0.14538026, 0.6011925, 0.65630877, 0.41960785)
+
+[node name="Areia" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(36.5, 37.125)
+scale = Vector2(6.8701515, 14.807926)
+texture = ExtResource("3_gm1qv")
+
+[node name="Sansao" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(824.5, -118.875)
+scale = Vector2(0.25721154, 0.18429486)
+texture = ExtResource("4_gm1qv")
+
+[node name="Marina" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(-4769, 415.125)
+scale = Vector2(0.23852538, 0.21240233)
+texture = ExtResource("5_nlc3t")
+
+[node name="Mar" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(1677.5, -294.875)
+scale = Vector2(3.2607052, 1.4857525)
+texture = ExtResource("5_2m26s")
+
+[node name="Sol" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(362.75, -455.75)
+scale = Vector2(0.44547325, 0.46263155)
+texture = ExtResource("7_nlc3t")
+
+[node name="Ilha" type="Sprite2D" parent="Cenário/CollisionShape2D"]
+position = Vector2(2451, -121.875)
+scale = Vector2(1.2821158, 1.1144257)
+texture = ExtResource("9_hxyhm")
+
+[node name="Parede Esquerda" type="CollisionShape2D" parent="Cenário"]
+position = Vector2(-183, 249)
+shape = SubResource("SegmentShape2D_kvo1h")
+
+[node name="PistanoMar" type="CollisionShape2D" parent="Cenário"]
+shape = SubResource("SegmentShape2D_hxyhm")
+
+[node name="Mina" parent="." instance=ExtResource("14_33pbr")]
+position = Vector2(2922, 471)
+
+[node name="Rafinha" type="CharacterBody2D" parent="."]
+position = Vector2(-30.5, 0)
+script = ExtResource("1_j1ic7")
+
+[node name="SpriteRafinha" type="Sprite2D" parent="Rafinha"]
+position = Vector2(255.5, 134.00002)
+scale = Vector2(0.5072401, 0.30733496)
+texture = ExtResource("1_s7je6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Rafinha"]
+position = Vector2(255.5, 135)
+shape = SubResource("CapsuleShape2D_hcwst")
+
+[node name="Camera2D" type="Camera2D" parent="Rafinha"]
+position = Vector2(228.5, 168)
+
+[node name="Bigo" type="CharacterBody2D" parent="." groups=["Bigo"]]
+position = Vector2(-10, 6)
+script = SubResource("GDScript_2m26s")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bigo"]
+position = Vector2(458, 221.75)
+shape = SubResource("CapsuleShape2D_mqnvb")
+
+[node name="PumBigo" parent="Bigo" instance=ExtResource("10_kvo1h")]
+position = Vector2(438, 172)
+scale = Vector2(0.3, 0.3)
+
+[node name="Sprite2D" type="Sprite2D" parent="Bigo"]
+position = Vector2(450.00003, 198)
+scale = Vector2(0.39055574, 0.2692308)
+texture = ExtResource("7_gm1qv")
+
+[node name="Prancha" type="StaticBody2D" parent="."]
+position = Vector2(1313.9999, 578)
+rotation = 2.6563911
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Prancha"]
+position = Vector2(-17.221497, -14.842041)
+shape = SubResource("RectangleShape2D_mqnvb")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Prancha/CollisionShape2D"]
+position = Vector2(-112.0838, -29.702637)
+rotation = -2.6563911
+texture = ExtResource("6_hcwst")
+
+[node name="Barcos" type="CharacterBody2D" parent="."]
+motion_mode = 1
+script = SubResource("GDScript_kvo1h")
+
+[node name="BarcosSprite" type="Sprite2D" parent="Barcos"]
+position = Vector2(1484, 587.0002)
+scale = Vector2(0.34049875, 0.35147297)
+texture = ExtResource("11_kvo1h")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barcos"]
+position = Vector2(1155, 536)
+shape = SubResource("RectangleShape2D_hxyhm")
+
+[node name="Marina" type="CharacterBody2D" parent="."]
+script = SubResource("GDScript_hxyhm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marina"]
+position = Vector2(361, 168)
+shape = SubResource("CapsuleShape2D_33pbr")
+
+[node name="SpriteMarina" type="Sprite2D" parent="Marina"]
+position = Vector2(361.375, 168)
+scale = Vector2(0.19458008, 0.21093753)
+texture = ExtResource("5_nlc3t")
