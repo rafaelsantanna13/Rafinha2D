@@ -48,13 +48,18 @@ const check = (value, name) => {
   // Traverse real collisions using only keyboard; no position or state writes.
   const travel = async (actor, directionKey, jumpKey, target, expectedLevel, right = true) => {
     const deadline = Date.now() + 55000;
-    let lastJump = 0, lastX = -1, stuckSince = Date.now();
+    let lastJump = 0, lastPower = 0, lastX = -1, stuckSince = Date.now();
     await page.keyboard.down(directionKey);
     try {
       while (Date.now() < deadline) {
         const value = await probe();
         if (value.finished || value.level !== expectedLevel) return;
         const [x, y] = value.actors[actor];
+        const blocker = value.villains?.find(v => !v.defeated && Math.abs(v.position[0] - x) < 175 && Math.abs(v.position[1] - y) <= 110);
+        if (blocker && Date.now() - lastPower > 850) {
+          await page.keyboard.press(actor === 'Rafinha' ? 'f' : 'q', {delay: 45});
+          lastPower = Date.now();
+        }
         if (right ? x >= target : x <= target) return;
         if (Math.abs(x - lastX) > 3) stuckSince = Date.now();
         const needsJump = value.platforms.some(([edge, height, width]) => {
@@ -88,7 +93,7 @@ const check = (value, name) => {
       check(true, 'Official Godot menu starts separately at root');
     }
     await page.goto(base, {waitUntil: 'load'});
-    await until(s => s.menu && s.buttons?.length, 'WebAssembly menu start', 120000);
+    await until(s => s.menu && s.buttons?.length && s.release === 'jedi-judo-snoopy-1', 'New published WebAssembly menu start', 120000);
     await capture('01-menu');
     check(true, 'Experimental WebAssembly menu starts');
     await button('JOGAR');
@@ -107,7 +112,7 @@ const check = (value, name) => {
     await page.keyboard.press('e');
     await page.keyboard.press('h');
     await until(s => s.help, 'Help opens');
-    check((await probe()).help_text.includes('J / K') && (await probe()).help_text.includes('I: recolher'), 'Help displays all sloth controls');
+    check((await probe()).help_text.includes('J / K') && (await probe()).help_text.includes('I: recolher') && (await probe()).help_text.includes('Guilherme') && (await probe()).help_text.includes('Q: Força') && (await probe()).help_text.includes('F: judô'), 'Help displays sloth, Jedi Force and Rafinha judô controls');
     await capture('02b-help');
     await page.keyboard.press('h');
     await until(s => !s.help, 'Help closes');
@@ -120,8 +125,14 @@ const check = (value, name) => {
     await page.waitForTimeout(1100);
     await capture('03-fofins-resgatada-com-guia');
     check((await probe()).leader === 'Rafinha', 'Rafinha conducts the visible guide');
-    check(Math.abs((await probe()).actors['Bicho-preguiça'][0] - slothStill) < 2, 'Sloth never follows the group or moves with C regroup');
-    await travel('Bigo', 'd', 'v', 2300, 0);
+    check((await probe()).actors['Bicho-preguiça'][0] > slothStill + 60 && (await probe()).sloth_visible, 'Forgotten sloth catches up and remains visible');
+    await travel('Rafinha', 'ArrowRight', 'Space', 1390, 0);
+    await page.waitForTimeout(450);
+    await page.keyboard.press('f');
+    await until(s => s.judo_hits > 0, 'Rafinha mysterious judô opens passage');
+    await capture('03c-judo-misterioso');
+    check((await probe()).villains.some(v => v.reaction === 'judo' && v.defeated), 'Rafinha F spins a physically blocking cabeçudinho');
+    await travel('Guilherme', 'x', 'b', 2300, 0);
     await until(s => s.level === 1, 'second castle transition');
     check((await probe()).dogs.includes('fofins'), 'Fófins persists across Web scenes');
     await page.waitForTimeout(1700);
@@ -152,6 +163,14 @@ const check = (value, name) => {
     await page.keyboard.press('u'); await page.waitForTimeout(250);
     check((await probe()).actors['Bicho-preguiça'][1] < 610, 'Sloth U jumps');
     await page.waitForTimeout(650);
+    const guiStart = (await probe()).actors.Guilherme[0];
+    await page.keyboard.down('z'); await page.waitForTimeout(200); await page.keyboard.up('z');
+    await page.waitForTimeout(300);
+    check((await probe()).actors.Guilherme[0] < guiStart - 15, 'Guilherme Z moves left with his own keys');
+    await travel('Guilherme', 'x', 'b', 1450, 1);
+    await until(s => s.force_hits > 0, 'Guilherme Force opens castle passage');
+    check((await probe()).villains.some(v => v.reaction === 'force' && v.defeated), 'Guilherme Q pushes the cabeçudinho with the Force');
+    await capture('04c-guilherme-forca');
     await travel('Bigo', 'd', 'v', 1135, 1);
     await until(s => s.dogs.length === 2, 'second dog rescue', 15000);
     await page.keyboard.press('c'); await page.waitForTimeout(1100);
@@ -165,16 +184,28 @@ const check = (value, name) => {
     check((await probe()).stars === 3, 'Rafinha completes final platform challenge with accumulated dogs');
     await travel('Rafinha', 'ArrowRight', 'Space', 2300, 2);
     await until(s => s.level === 3, 'fourth castle after original three');
-    check((await probe()).dogs.length === 2 && (await probe()).pending.length === 4, 'New castle follows the three preserved castles');
+    check((await probe()).dogs.length === 2 && (await probe()).pending.length === 5, 'Snoopy and four friends follow the three preserved castles');
+    await travel('Bigo', 'd', 'v', 700, 3);
+    await until(s => s.dogs.includes('amigo_creme'), 'first friend in Snoopy castle');
+    await travel('Bigo', 'd', 'v', 1270, 3);
+    await until(s => s.dogs.includes('amigo_cinza'), 'second friend in Snoopy castle');
+    await travel('Bigo', 'd', 'v', 1600, 3);
+    await page.waitForTimeout(300);
+    check((await probe()).pending.some(d => d.id === 'snoopy' && d.sleeping), 'Snoopy sleeps on the red doghouse as the main rescue');
+    await capture('06a-snoopy-dormindo-casa-vermelha');
+    await travel('Bigo', 'd', 'v', 1805, 3);
+    await until(s => s.dogs.includes('snoopy'), 'Snoopy wakes and joins the guided dogs');
+    await capture('06b-snoopy-resgatado');
+    check((await probe()).dogs.includes('snoopy'), 'Snoopy can be rescued from his rooftop and join the group');
     await rescueAll(3);
     await page.keyboard.press('c'); await page.waitForTimeout(1200);
     await capture('06-castelo-muitos-cachorros');
-    check((await probe()).dogs.length === 6, 'Four new rescued dogs join the group in castle four');
+    check((await probe()).dogs.length === 7, 'Snoopy and four rescued friends join the group in castle four');
     await travel('Bigo', 'd', 'v', 3000, 3);
     await until(s => s.level === 4, 'secret burrow castle');
-    check((await probe()).richard === 0 && (await probe()).dogs.length === 6, 'Richard remains hidden and six dogs persist into castle five');
+    check((await probe()).richard === 0 && (await probe()).dogs.length === 7, 'Richard remains hidden and seven dogs persist into castle five');
     await travel('Bigo', 'd', 'v', 700, 4);
-    await until(s => s.dogs.length === 7, 'first dog in castle five');
+    await until(s => s.dogs.length === 8, 'first dog in castle five');
     await travel('Bigo', 'd', 'v', 1765, 4);
     await until(s => s.richard === 2, 'Richard emerges after cave discovery');
     check((await probe()).actors.Bigo[1] > 780, 'Player physically discovers a hole and reaches the burrow floor');
@@ -185,13 +216,13 @@ const check = (value, name) => {
     await until(s => s.finished, 'celebration');
     await page.waitForTimeout(800);
     await capture('08-festa');
-    check(true, 'Five castles, cave exit and ten dogs are playable through to celebration');
+    check(true, 'Five castles, cave exit and eleven dogs are playable through to celebration');
     await page.waitForTimeout(1600);
     await page.reload({waitUntil: 'load'});
     await until(s => s.menu && s.has_save && s.buttons?.length, 'completed save menu', 120000);
     await button('VER A FESTA');
     await until(s => s.finished, 'saved completion');
-    check((await probe()).dogs.length === 10 && (await probe()).poop_collected >= 1, 'Completed five-castle adventure, ten dogs and collected poop persist across browser reload');
+    check((await probe()).dogs.length === 11 && (await probe()).poop_collected >= 1, 'Completed five-castle adventure, eleven dogs and collected poop persist across browser reload');
     check(errors.length === 0, 'No critical browser or Godot script errors: ' + errors.join('\n'));
     fs.writeFileSync(path.join(screenshots, 'browser-report.json'), JSON.stringify({passed: results, errors}, null, 2));
     console.log('WEB_TEST_SUMMARY:', results.length, 'checks, 0 failures');

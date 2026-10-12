@@ -2,7 +2,9 @@ class_name CastleCatalog
 extends RefCounted
 
 # Os oito amigos novos têm identidades provisórias, para a Rafaela escolher.
+const CONTENT_VERSION = "jedi-judo-snoopy-1"
 const DOGS = {
+	"snoopy": {"name": "Snoopy", "art": "snoopy", "collar": Color("#db5357")},
 	"fofins": {"name": "Fófins", "art": "fofins", "collar": Color("#ef5685"), "female": true},
 	"tokio": {"name": "Tokio", "art": "tokio", "collar": Color("#24a6bc"), "female": true},
 	"amigo_creme": {"name": "Amigo Creme", "art": "creme", "collar": Color("#dc5692")},
@@ -28,10 +30,11 @@ const LEVELS = [
 	 "roof": Color("#526ec8"), "hint": "Com os cachorros, pegue as 3 patinhas e siga a aventura!",
 	 "steps": [Vector4(410, 570, 220, 55), Vector4(625, 515, 220, 28), Vector4(840, 460, 220, 28), Vector4(1055, 405, 240, 28), Vector4(1480, 570, 175, 55), Vector4(1745, 570, 170, 55)]},
 	{"title": "O Castelo dos Muitos Cachorros", "scene": "res://adventure/levels/castle_4.tscn", "width": 3200.0,
-	 "rescues": {"amigo_creme": Vector2(700, 570), "amigo_cinza": Vector2(1270, 515), "amigo_caramelo": Vector2(1960, 570), "amigo_malhado": Vector2(2640, 570)},
+	 "main_rescue": "snoopy", "house": Vector2(1790, 625),
+	 "rescues": {"amigo_creme": Vector2(700, 570), "amigo_cinza": Vector2(1270, 515), "snoopy": Vector2(1810, 460), "amigo_caramelo": Vector2(1960, 570), "amigo_malhado": Vector2(2640, 570)},
 	 "sky": Color("#ffdf9f"), "stone": Color("#e9b184"), "roof": Color("#df695b"),
-	 "hint": "Quatro amigos esperam por vocês. Explore as plataformas!",
-	 "steps": [Vector4(570, 570, 245, 55), Vector4(960, 570, 210, 55), Vector4(1155, 515, 245, 28), Vector4(1830, 570, 250, 55), Vector4(2490, 570, 280, 55)]},
+	 "hint": "Snoopy dorme na casinha vermelha! Resgate ele e os quatro amigos.",
+	 "steps": [Vector4(570, 570, 245, 55), Vector4(960, 570, 210, 55), Vector4(1155, 515, 245, 28), Vector4(1450, 570, 160, 55), Vector4(1580, 515, 160, 28), Vector4(1750, 460, 140, 18), Vector4(1830, 570, 250, 55), Vector4(2490, 570, 280, 55)]},
 	{"title": "O Castelo da Toca Secreta", "scene": "res://adventure/levels/castle_5.tscn", "width": 3500.0, "cave": true,
 	 "rescues": {"amigo_dourado": Vector2(700, 570), "amigo_chocolate": Vector2(1770, 850), "amigo_branco": Vector2(2590, 570), "amigo_pintinhas": Vector2(3070, 515)},
 	 "sky": Color("#a7dce1"), "stone": Color("#a5c6bf"), "roof": Color("#4095a0"),

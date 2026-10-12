@@ -1,140 +1,86 @@
 # Rafinha2D — A aventura dos castelos
 
 Jogo infantil em **Godot 4.5.2 Standard**, com os desenhos originais da família.
-Nesta branch experimental, Bigo, Rafinha e Marina atravessam cinco castelos,
-resgatam Fófins, Tokio e oito novos amigos. Um bicho-preguiça controlado pelo
-teclado recolhe os cocôs dos cães. Os desenhos e a aventura original continuam
-disponíveis.
+Rafinha, Bigo, Marina, Guilherme Jedi e a preguiça atravessam cinco castelos,
+resgatando Fófins, Tokio, Snoopy e oito amigos de identidades provisórias.
 
-- Oficial: https://rafaelsantanna13.github.io/Rafinha2D/
-- Experimento jogável (Sites, login na conta do proprietário): https://rafinha2d-castelos-teste.clean-aspen-8728.chatgpt.site
-- Endereço planejado /teste/: depende de autorização da branch no ambiente GitHub Pages
-- Branch: `feature/sloth-poop-richard-two-castles`
-
-A **main não foi modificada**. O experimento ainda depende da avaliação da Rafaela.
+**Site oficial:** https://rafaelsantanna13.github.io/Rafinha2D/
 
 ## Jogar
 
-Abra o experimento em um computador e clique **JOGAR**.
-Chegue pertinho de um cachorro e espere um instante para resgatar.
-Após o resgate, avance até a porta do próximo castelo.
-No terceiro castelo, recolha as três patinhas e continue. Há quatro cachorros
-para resgatar em cada um dos dois castelos seguintes. A festa encerra o quinto.
+Clique JOGAR para começar ou CONTINUAR para abrir o castelo salvo.
+Chegue pertinho de cada cachorro e espere um instante para resgatar.
+Rafinha segura as guias por padrão; o Help permite passá-las para Bigo.
+Fófins sempre é a primeira cachorrinha. Tokio é fêmea e toda preta.
 
 | Personagem | Andar | Pular | Especial |
 | --- | --- | --- | --- |
-| Rafinha | Setas esquerda/direita | Espaço | Conduz as guias por padrão |
+| Rafinha | Setas esquerda/direita | Espaço | F: judô misterioso |
 | Bigo | A / D | V | E: pum original |
 | Marina | 1 / 3 | L | — |
-| Bicho-preguiça | J / K | U | I: recolher cocô próximo |
+| Preguiça | J / K | U | I: recolher cocô próximo |
+| Guilherme Jedi | Z / X | B | Q: Força |
 
-**H ou Esc:** ajuda/pausa. **T:** alternar ajuda dos amigos.
-**C:** reunir Rafinha, Bigo, Marina e cachorros. **A preguiça não é movida por C.**
-Rafinha, Bigo e Marina acompanham quem está sendo controlado quando a ajuda
-está ligada. A preguiça só anda com J/K e U, mesmo com essa ajuda ligada.
-Todos continuam jogáveis pelas suas próprias teclas, inclusive simultaneamente.
-A ajuda pode ser desligada no menu ou com T.
-Na ajuda, também é possível trocar as guias entre Rafinha e Bigo.
+H ou Esc abre Help/pausa. T alterna a ajuda dos amigos humanos; C reúne esses
+amigos. A preguiça continua controlável e vem automaticamente quando fica para
+trás perto da borda. A câmera considera sua posição para mantê-la no enquadramento.
+As suas teclas sempre têm prioridade sobre esse acompanhamento.
 
-**CONTINUAR** abre o castelo salvo. **JOGAR** inicia outra aventura;
-quando existe progresso, uma confirmação evita apagá-lo por acidente.
-**JOGO ORIGINAL** abre a cena `mundo_rafinha.tscn` preservada.
+Os cabeçudinhos patrulham passagens e têm colisão. F faz o judô misterioso da
+Rafinha e Q usa a Força do Guilherme para afastá-los. Eles ficam tontos e a
+passagem abre, sem dano, mortes ou perda de vidas.
 
-## Salvamento
+## Castelos
 
-Fases concluídas, fase desbloqueada, cachorros resgatados, cocôs recolhidos e opções ficam em
-`user://castle_adventure_v1.json`. Na Web, o armazenamento é local ao navegador
-e ao computador. Não há sincronização em nuvem. Bloqueios de armazenamento são
-informados sem impedir o jogo. As patinhas do terceiro castelo recomeçam ao voltar
-para esse castelo; os cachorros e as fases concluídas continuam salvos.
-O save anterior é compatível: o amigo provisório vira Tokio e uma aventura
-antiga concluída desbloqueia o quarto castelo.
+1. Castelo da Fófins: primeiro resgate.
+2. Castelo dos Amigos: resgate de Tokio.
+3. Castelo das Patinhas: três patinhas nas plataformas.
+4. Castelo dos Muitos Cachorros: **Snoopy é o resgate principal**, dormindo no
+   telhado de sua casinha vermelha; outros quatro amigos também esperam ali.
+5. Castelo da Toca Secreta: quatro amigos, exploração e uma descoberta.
 
-## Abrir e testar no Godot
+[Guia dos responsáveis — contém spoiler](docs/expansion-parent-guide.md).
+JOGO ORIGINAL abre a cena mundo_rafinha.tscn preservada.
 
-Importe `project.godot` no **Godot 4.5.2 Standard**, renderer **Compatibility**,
-e execute F5. Não é necessário instalar addons no Godot.
+## Cocôs e progresso
+
+Cada cachorro resgatado pode produzir cocô no chão com um temporizador; há no
+máximo 12 objetos por fase. A preguiça usa I quando está perto. A coleta anima
+os personagens e aumenta um contador. Objetos no chão são limpos nas transições.
+
+Fases, cães, opções e total recolhido ficam em user://castle_adventure_v1.json.
+O formato atual é versão 3 e aceita os formatos anteriores. Um progresso que
+já passou do quarto castelo volta a ele para resgatar Snoopy, preservando os
+outros cães e o contador. O antigo amigo provisório é convertido para Tokio.
+
+O armazenamento é local ao navegador, computador e endereço do site. Não há
+sincronização em nuvem nem transferência automática entre o preview e o site
+oficial. JOGAR confirma o reinício quando já existe progresso. Patinhas e a
+surpresa recomeçam ao revisitar a fase, mantendo os resgates e fases concluídas.
+
+## Desenvolvimento e testes
+
+Abra project.godot no Godot 4.5.2 Standard, Compatibility, e execute F5.
 
 ```bash
 godot --headless --path . --editor --import --quit
 godot --headless --path . --fixed-fps 60 --script tests/run_adventure.gd -- --adventure-tests
 python3 -m unittest discover -s tests -p 'test_*.py'
 python3 scripts/validate_project.py
-mkdir -p build/preview
-godot --headless --path . --export-release Web build/preview/index.html
-python3 scripts/validate_project.py build/preview
 ```
 
-Os testes usam um arquivo de salvamento separado e nunca apagam progresso real.
-Para o teste Web completo, instale as dependências de teste com `npm ci`,
-execute `npx playwright install --with-deps chromium`, sirva `build/preview`
-com `python3 -m http.server 8765 --directory build/preview` e execute
-`npm run test:web` em outro terminal.
+O teste usa um save separado. O Actions instala os templates Web oficiais,
+exporta o jogo e percorre as cinco fases no Google Chrome usando teclado/mouse.
+A observabilidade window.rafinhaAdventure é somente leitura e não oferece
+atalhos de teleporte, resgate ou conclusão. O workflow da main testa antes da
+publicação e percorre também o endereço oficial depois do deploy.
 
-## Organização
+O catálogo central define cães, resgates, plataformas e fases. Os componentes
+reutilizáveis ficam em adventure/actors, dogs, poop, combat e events. Os SVGs
+transparentes são reproduzíveis por scripts/generate_art.py. Nenhuma fotografia
+original foi incorporada ao repositório ou à exportação; a arte de Fófins foi
+preservada da expansão anterior.
 
-- `adventure/catalog.gd`: castelos, identidade dos cachorros e cores.
-- `adventure/state.gd`: progressão, salvamento e validação.
-- `adventure/actors/`: personagens originais e componente próprio da preguiça manual.
-- `adventure/dogs/`: resgate por proximidade, estados visuais, trilha e guias.
-- `adventure/poop/`: temporizadores, geração segura, limite e coleta por proximidade.
-- `adventure/events/`: eventos de descoberta reutilizáveis.
-- `adventure/levels/`: cenas independentes e construtor compartilhado de fases.
-- `adventure/art/`: SVGs transparentes dos cachorros e cenários.
-- `scripts/generate_art.py`: fonte reproduzível dos desenhos novos.
-- `tests/`: testes Godot, navegador e preservação da publicação.
-
-Para adicionar um castelo, crie outra cena com `castle_level.gd`, um índice novo
-e uma entrada em `CastleCatalog.LEVELS`. Um novo cachorro entra em `DOGS`, com
-identificador, nome, prefixo dos quatro SVGs e cor da coleira. A lista de resgates
-e a formação crescem com o catálogo. A primeira cachorrinha permanece Fófins.
-
-## Publicação experimental
-
-O workflow `adventure-preview.yml` executa os testes e exporta o Godot da branch.
-Também prepara uma composição com **os nove arquivos da versão oficial já publicada, sem reconstruí-los**,
-para a raiz do pacote Pages e acrescenta a exportação em `/teste/`.
-Hashes SHA-256 e uma verificação da versão oficial antes da publicação impedem
-que o pacote experimental substitua o conteúdo do jogo oficial.
-
-O workflow original da main e a configuração do Pages continuam intactos.
-**Limitação:** uma publicação futura pelo workflow original da main pode remover
-`/teste/`, pois GitHub Pages publica um único pacote por vez. Nesse caso, execute
-novamente o workflow experimental selecionando esta branch; ele preservará a
-versão oficial mais recente e restaurará o teste. A retenção permanente do
-subdiretório em futuras publicações exige aprovar uma atualização do workflow
-oficial. Nenhuma alteração desse tipo foi aplicada à main.
-
-O ambiente `github-pages` deste repositório autoriza somente a main. A tentativa
-de publicar a feature foi rejeitada por essa proteção, que foi preservada.
-Por isso o experimento foi publicado separadamente em **Sites**, com acesso
-privado pela conta do proprietário. O deploy Pages está desligado por padrão;
-`workflow_dispatch.publish_pages` só deve ser usado depois de autorizar a branch.
-
-A publicação Sites usa a exportação real do Godot. O WASM é compactado sem
-perda e descompactado no navegador, preservando os mesmos bytes da engine.
-Chrome, Edge ou Firefox atualizados são recomendados. `prepare_free_preview.py`
-produz o pacote e um teste Chromium verifica esse carregamento. O GitHub Actions
-sempre fornece um artefato `free-preview-export`; uma atualização do preview
-Sites é feita pelo Work a partir dessa exportação, sem alterar a main.
-
-As capturas e o relatório de navegador ficam em [docs/screenshots](docs/screenshots).
-O manifesto da composição Pages fica no artefato `github-pages` do workflow.
-Pull requests executam verificações, mas não publicam.
-
-## Decisões ainda da Rafaela
-
-Fófins é a primeira cachorrinha; Tokio é a segunda, fêmea e inteiramente preta.
-Os oito novos amigos têm identidades provisórias. Quantidade definitiva de
-castelos, temas, desenhos novos e frequência dos cocôs continuam abertos à Rafaela.
-As duas fases adicionais são o Castelo dos Muitos Cachorros e o Castelo da Toca
-Secreta. [Guia reservado aos responsáveis, com spoiler](docs/expansion-parent-guide.md).
-Os resgates não inventam vilões nem a razão de os cachorros estarem nos castelos.
-
-Fófins foi desenhada em SVG usando as quatro fotografias fornecidas como
-referência: pelagem clara, orelhas castanhas, rosto bege/marrom, olhos grandes,
-nariz preto, focinho curto e pelos na testa. **As fotos originais não fazem parte
-do repositório nem da exportação.**
-
-Consulte [a auditoria](docs/audit.md), [a arquitetura](docs/architecture.md) e
-[o relatório de verificações](docs/test-report.md).
+Os nomes dos oito amigos e a aparência dos novos desenhos ainda podem ser
+escolhidos pela Rafaela. A expansão foi integrada à main conforme a autorização
+do responsável; isso não substitui a avaliação da diversão pela criança.

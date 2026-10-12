@@ -1,6 +1,7 @@
 extends Node2D
 
 var art_id: String = "fofins"
+var is_sleeping: bool = false
 var state: String = "idle"
 var poop_time: float = 0.0
 var facing: float = 1.0
@@ -14,12 +15,16 @@ func _ready() -> void:
 	add_child(sprite)
 	for frame in ["idle", "walk", "rescue", "follow"]:
 		textures[frame] = load("res://adventure/art/" + art_id + "_" + frame + ".svg")
-	sprite.texture = textures["idle"]
+	if art_id == "snoopy":
+		textures["sleep"] = load("res://adventure/art/snoopy_sleep.svg")
+	sprite.texture = textures["sleep"] if is_sleeping else textures["idle"]
 
 func animate(delta: float, moving: bool, celebrating: bool = false) -> void:
 	time += delta
 	poop_time = maxf(0.0, poop_time - delta)
 	state = "rescue" if celebrating else ("walk" if moving and sin(time * 14.0) > 0.0 else ("follow" if moving else "idle"))
+	if is_sleeping and not celebrating:
+		state = "sleep"
 	sprite.texture = textures[state]
 	sprite.flip_h = facing < 0.0
 	sprite.position.y = -40.0 - (absf(sin(time * 7.0)) * 3.0 if moving or celebrating else sin(time * 2.0) * 0.7)
@@ -29,4 +34,4 @@ func animate(delta: float, moving: bool, celebrating: bool = false) -> void:
 		sprite.position.y += 5.0
 
 func collar_position() -> Vector2:
-	return global_position + Vector2(facing * 28.0, -17.0)
+	return global_position + (Vector2(facing * 20.0, -27.0) if art_id == "snoopy" else Vector2(facing * 28.0, -17.0))

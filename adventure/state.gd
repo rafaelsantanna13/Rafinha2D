@@ -4,7 +4,7 @@ signal progress_changed
 signal save_status_changed
 
 const Catalog = preload("res://adventure/catalog.gd")
-const SAVE_VERSION = 2
+const SAVE_VERSION = 3
 const DEFAULT_SAVE_PATH = "user://castle_adventure_v1.json"
 
 var save_path: String = DEFAULT_SAVE_PATH
@@ -117,7 +117,7 @@ func load_progress() -> bool:
 	if not parsed is Dictionary:
 		return false
 	var version = parsed.get("version", 0)
-	if (not version is int and not version is float) or int(version) not in [1, SAVE_VERSION]:
+	if (not version is int and not version is float) or int(version) not in [1, 2, SAVE_VERSION]:
 		save_notice = "O progresso antigo não pôde ser aberto. Comece uma nova aventura."
 		return false
 	# Reject malformed saves without leaving partial state behind.
@@ -144,6 +144,10 @@ func load_progress() -> bool:
 	if parsed.get("version", 0) == 1 and bool(parsed.get("finished", false)) and done.size() == 3:
 		current_level = 3
 		unlocked_level = maxi(unlocked_level, 3)
+	# Added rescue: a completed v2 adventure returns to Snoopy's castle.
+	if int(version) < 3 and not "snoopy" in dogs and (current_level > 3 or 3 in done):
+		current_level = 3
+		done.assign(done.filter(func(index): return index < 3))
 	completed_levels = done
 	rescued_dogs = dogs
 	finished = bool(parsed.get("finished", false)) and done.size() == Catalog.LEVELS.size()

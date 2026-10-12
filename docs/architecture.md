@@ -1,3 +1,9 @@
+# Arquitetura anterior — histórico
+
+A atualização atual está descrita em [jedi-judo-snoopy.md](jedi-judo-snoopy.md).
+Ela substitui a regra abaixo de preguiça exclusivamente manual, inclui combate
+cômico e o resgate de Snoopy, e está autorizada para a main.
+
 # Arquitetura e escolhas provisórias
 
 Cada cena de castelo possui um `level_index` e usa o mesmo construtor. O catálogo

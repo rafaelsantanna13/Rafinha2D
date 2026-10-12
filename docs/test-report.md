@@ -1,3 +1,9 @@
+# Relatórios históricos das expansões anteriores
+
+A versão atual acrescenta Guilherme, judô e Snoopy, muda o acompanhamento da
+preguiça e tem publicação na main autorizada. Consulte [a continuação](jedi-judo-snoopy.md)
+e as execuções atuais do Actions. Os resultados abaixo pertencem à versão anterior.
+
 # Verificações da expansão da preguiça
 
 Engine: **Godot 4.5.2 Standard**, `4.5.2.stable.official.6ce3de25a`.

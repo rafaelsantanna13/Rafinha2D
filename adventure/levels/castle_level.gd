@@ -7,6 +7,10 @@ const RescueDog = preload("res://adventure/dogs/rescue_dog.tscn")
 const Followers = preload("res://adventure/dogs/followers.gd")
 const Sloth = preload("res://adventure/actors/sloth.tscn")
 const PoopManager = preload("res://adventure/poop/manager.gd")
+const Abilities = preload("res://adventure/combat/abilities.gd")
+const Bighead = preload("res://adventure/combat/bighead.gd")
+var combat: Node2D
+var guilherme: CharacterBody2D
 const RichardEvent = preload("res://adventure/events/richard.gd")
 var world_width: float = 2500.0
 var ground_rects: Array[Vector4] = []
@@ -44,6 +48,24 @@ func _ready() -> void:
 		ground_rects = [Vector4(0, FLOOR_Y, 1400, 350), Vector4(2220, FLOOR_Y, world_width - 2220, 350), Vector4(1400, 850, 820, 125)]
 	_build_scenery()
 	_build_players()
+	combat = Abilities.new()
+	add_child(combat)
+	var encounters: Array = [
+		[Vector2(1450, 625)], [Vector2(1360, 625), Vector2(1980, 625)],
+		[Vector2(1450, 625)], [Vector2(875, 625), Vector2(1550, 625), Vector2(2230, 625)],
+		[Vector2(1020, 625), Vector2(2380, 625)],
+	]
+	for point in encounters[level_index]:
+		var villain = Bighead.new()
+		villain.position = point
+		villain.z_index = 3
+		add_child(villain)
+		combat.villains.append(villain)
+	for actor in players:
+		actor.combat = combat
+	combat.performed.connect(func(kind: String, hits: int):
+		show_message(("Judô misterioso! Rodopiou!" if kind == "judo" else "Guilherme usou a Força! Caminho livre!") if hits > 0 else ("Chegue mais perto e use F para o judô." if kind == "judo" else "Aponte a Força para um cabeçudinho próximo."), 2.0)
+	)
 	followers = Followers.new()
 	followers.name = "DogsWithLeashes"
 	followers.z_index = 3
@@ -118,6 +140,12 @@ func _build_scenery() -> void:
 		grass.position = Vector2(ground.x + ground.z * 0.5, FLOOR_Y + 4)
 		grass.z_index = 2
 		add_child(grass)
+	if data.has("house"):
+		var house = Sprite2D.new()
+		house.texture = preload("res://adventure/art/snoopy_house.svg")
+		house.position = data["house"] - Vector2(0, 90)
+		house.z_index = 1
+		add_child(house)
 	queue_redraw()
 
 func _add_platform(rect: Vector4) -> void:
@@ -176,6 +204,9 @@ func _build_players() -> void:
 		actor.position = entry[6]
 		actor.world_width = world_width
 		actor.world_bottom = 1100.0 if data.get("cave", false) else 820.0
+		if actor.actor_name == "Rafinha":
+			actor.special_action = "rafinha_judo"
+			actor.special_kind = "judo"
 		actor.took_control.connect(_take_control)
 		add_child(actor)
 		players.append(actor)
@@ -186,9 +217,30 @@ func _build_players() -> void:
 	sloth.art_height = 148.0
 	sloth.position = Vector2(100, FLOOR_Y)
 	sloth.world_width = world_width
+	sloth.world_bottom = 1100.0 if data.get("cave", false) else 820.0
 	sloth.took_control.connect(_take_control)
 	add_child(sloth)
 	players.append(sloth)
+	guilherme = Player.instantiate()
+	guilherme.name = "Guilherme"
+	guilherme.actor_name = "Guilherme"
+	guilherme.left_action = "guilherme_left"
+	guilherme.right_action = "guilherme_right"
+	guilherme.jump_action = "guilherme_jump"
+	guilherme.special_action = "guilherme_force"
+	guilherme.special_kind = "force"
+	guilherme.art = preload("res://adventure/art/guilherme_idle.svg")
+	guilherme.art_height = 138.0
+	guilherme.position = Vector2(510, FLOOR_Y)
+	for platform in data["steps"]:
+		if 510 >= platform.x and 510 <= platform.x + platform.z:
+			guilherme.position.y = minf(guilherme.position.y, platform.y)
+	guilherme.world_width = world_width
+	guilherme.world_bottom = 1100.0 if data.get("cave", false) else 820.0
+	guilherme.z_index = 3
+	guilherme.took_control.connect(_take_control)
+	add_child(guilherme)
+	players.append(guilherme)
 	active_actor = players[0]
 	camera = Camera2D.new()
 	camera.position = Vector2(640, 360)
@@ -211,8 +263,19 @@ func _update_leader() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(active_actor) or transition_pending:
 		return
+	_update_sloth_follow()
 	camera.position = active_actor.global_position + Vector2(100, -245)
+	if sloth.catching_up and active_actor != sloth:
+		var gap: float = absf(active_actor.position.x - sloth.position.x)
+		camera.zoom = Vector2.ONE * minf(1.0, 1280.0 / (gap + 460.0))
+		camera.position.x = (active_actor.position.x + sloth.position.x) * 0.5 + 120.0
+		camera.position_smoothing_enabled = gap < 550.0
+	else:
+		camera.zoom = camera.zoom.move_toward(Vector2.ONE, delta * 2.0)
+		camera.position_smoothing_enabled = true
 	for actor in players:
+		if actor == sloth:
+			continue
 		actor.automatic_follow = actor.can_auto_follow and AdventureState.assist_friends and actor != active_actor
 		actor.automatic_target = formation_target(actor)
 		if actor.automatic_follow and actor.manual_time <= 0.0 and actor.global_position.distance_to(active_actor.global_position) > 750.0:
@@ -229,6 +292,29 @@ func _physics_process(delta: float) -> void:
 			break
 	_update_web_probe()
 
+
+func visible_world_rect() -> Rect2:
+	var size: Vector2 = get_viewport_rect().size / camera.zoom
+	return Rect2(camera.get_screen_center_position() - size * 0.5, size)
+
+func sloth_is_visible() -> bool:
+	return visible_world_rect().has_point(sloth.position - Vector2(0, sloth.art_height * 0.5))
+
+func _update_sloth_follow() -> void:
+	if active_actor == sloth or sloth.manual_time > 0.0:
+		sloth.catching_up = false
+		sloth.automatic_follow = false
+		return
+	var view: Rect2 = visible_world_rect()
+	var separation: float = absf(active_actor.position.x - sloth.position.x)
+	var near_edge: bool = sloth.position.x < view.position.x + 220 or sloth.position.x > view.end.x - 220
+	if separation > 320.0 and near_edge:
+		sloth.catching_up = true
+	if separation < 220.0:
+		sloth.catching_up = false
+	sloth.automatic_follow = sloth.catching_up
+	sloth.automatic_target = active_actor.position - Vector2(active_actor.face * 180.0, 0)
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -244,11 +330,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _regroup() -> void:
 	for actor in players:
-		if actor != active_actor and actor.can_auto_follow:
+		if actor != active_actor and actor != sloth and actor.can_auto_follow:
 			actor.global_position = formation_target(actor) - Vector2(0, 5)
 			actor.velocity = Vector2.ZERO
 	followers.reset_trail()
-	show_message("Amigos reunidos! A preguiça continua com suas teclas.")
+	show_message("Amigos reunidos! A preguiça vem se ficar para trás.")
 
 func formation_target(actor: CharacterBody2D) -> Vector2:
 	var offset: float = 0.0
@@ -257,7 +343,7 @@ func formation_target(actor: CharacterBody2D) -> Vector2:
 	elif active_actor.actor_name == AdventureState.leader_name:
 		var other_names: Array[String] = []
 		for friend in players:
-			if friend != active_actor and friend.can_auto_follow:
+			if friend != active_actor and friend != sloth and friend.can_auto_follow:
 				other_names.append(friend.actor_name)
 		offset = 115.0 + other_names.find(actor.actor_name) * 115.0
 	else:
@@ -267,7 +353,7 @@ func formation_target(actor: CharacterBody2D) -> Vector2:
 func _on_dog_rescued(id: String) -> void:
 	followers.add_dog(id, true)
 	_update_hud()
-	show_message(Catalog.DOGS[id]["name"] + (" resgatada! " if Catalog.DOGS[id].get("female", false) else " resgatado! ") + AdventureState.leader_name + " segura as guias.", 4.0)
+	show_message("Snoopy acordou! Vamos juntos com as guias!" if id == "snoopy" else Catalog.DOGS[id]["name"] + (" resgatada! " if Catalog.DOGS[id].get("female", false) else " resgatado! ") + AdventureState.leader_name + " segura as guias.", 4.0)
 	print("ADVENTURE_RESCUED:", id)
 
 func _add_star(point: Vector2) -> void:
@@ -395,14 +481,15 @@ func _build_hud() -> void:
 	panel.size = Vector2(860, 620)
 	help.add_child(panel)
 	var layout = VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 10)
+	layout.add_theme_constant_override("separation", 8)
 	panel.add_child(layout)
 	layout.add_child(UI.label("VAMOS JOGAR JUNTOS!", 30))
-	layout.add_child(UI.label("Rafinha: setas esquerda/direita    Espaço: pular", 23))
+	layout.add_child(UI.label("Rafinha: setas esquerda/direita    Espaço: pular    F: judô", 23))
 	layout.add_child(UI.label("Bigo: A / D: andar    V: pular    E: pum", 23))
 	layout.add_child(UI.label("Marina: 1 / 3: andar    L: pular", 23))
 	layout.add_child(UI.label("Preguiça: J / K: andar    U: pular    I: recolher cocô", 23))
-	layout.add_child(UI.label("A preguiça só anda com suas teclas. Chegue perto do cocô e use I.\nResgate: fique pertinho do cachorro.\nT: ajuda dos amigos.    C: reunir amigos (a preguiça fica onde está).", 20))
+	layout.add_child(UI.label("Guilherme: Z / X: andar    B: pular    Q: Força", 23))
+	layout.add_child(UI.label("F: judô misterioso. Q: afasta cabeçudinhos com a Força.\nPreguiça: use I perto do cocô. Ela vem se ficar na borda.\nResgate: chegue pertinho. T: ajuda dos amigos. C: reunir amigos.", 20))
 	layout.add_child(UI.button("TROCAR QUEM SEGURA AS GUIAS", _switch_guide))
 	layout.add_child(UI.button("CONTINUAR JOGANDO", _toggle_help, true))
 	layout.add_child(UI.button("VOLTAR AO MENU", _return_to_menu))
@@ -471,14 +558,21 @@ func _update_web_probe(force: bool = false) -> void:
 	for id in data["rescues"]:
 		if not id in AdventureState.rescued_dogs:
 			var point: Vector2 = data["rescues"][id]
-			pending.append({"id": id, "position": [point.x, point.y]})
+			var sleeping: bool = false
+			for waiting in rescue_dogs:
+				if is_instance_valid(waiting) and waiting.dog_id == id:
+					sleeping = waiting.visual.is_sleeping
+			pending.append({"id": id, "position": [point.x, point.y], "sleeping": sleeping})
 	var platforms: Array = []
 	for point in data["steps"]:
 		platforms.append([point.x, point.y, point.z, point.w])
-	var value: String = JSON.stringify({"level": level_index, "actors": actors, "floors": floors, "dogs": followers.dog_ids,
+	var villains: Array = []
+	for villain in combat.villains:
+		villains.append({"position": [snappedf(villain.position.x, 0.1), snappedf(villain.position.y, 0.1)], "defeated": villain.defeated, "reaction": villain.reaction})
+	var value: String = JSON.stringify({"level": level_index, "release": Catalog.CONTENT_VERSION, "actors": actors, "floors": floors, "dogs": followers.dog_ids,
 		"dog_positions": dog_positions, "leader": AdventureState.leader_name, "stars": collected_stars,
 		"poop": poop_positions, "poop_collected": AdventureState.poop_collected, "poop_generated": poop.generated, "poop_limit": poop.max_objects,
-		"pending": pending, "platforms": platforms, "exit_x": gateway.position.x, "help": help.visible,
+		"pending": pending, "platforms": platforms, "villains": villains, "judo_hits": combat.judo_hits, "force_hits": combat.force_hits, "sloth_following": sloth.catching_up, "sloth_visible": sloth_is_visible(), "exit_x": gateway.position.x, "help": help.visible,
 		"help_text": " ".join(help.find_children("*", "Label", true, false).map(func(item): return item.text)),
 		"richard": int(richard.state) if is_instance_valid(richard) else -1})
 	JavaScriptBridge.eval("window.rafinhaAdventure = " + value, true)

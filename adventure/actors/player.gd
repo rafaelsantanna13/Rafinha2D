@@ -16,6 +16,8 @@ const UI = preload("res://adventure/ui.gd")
 @export var move_speed: float = SPEED
 @export var can_auto_follow: bool = true
 @export var allow_recovery: bool = true
+@export var special_action: String = ""
+@export var special_kind: String = ""
 @export var world_bottom: float = 820.0
 
 var face: float = 1.0
@@ -30,6 +32,10 @@ var pum_cooldown: float = 0.0
 var spawn_point: Vector2
 var sprite: Sprite2D
 var pum: Node2D
+var combat: Node2D
+var ability_cooldown: float = 0.0
+var ability_time: float = 0.0
+var jedi_frames: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("adventure_players")
@@ -41,6 +47,12 @@ func _ready() -> void:
 		sprite.scale = Vector2(factor, factor)
 		sprite.position.y = -art_height * 0.5
 	$Name.text = actor_name
+	collision_mask = 5
+	if actor_name == "Guilherme":
+		for frame in ["idle", "walk", "force"]:
+			jedi_frames[frame] = load("res://adventure/art/guilherme_" + frame + ".svg")
+		sprite.texture = jedi_frames["idle"]
+		sprite.scale = Vector2.ONE * (art_height / 170.0)
 	if actor_name == "Bigo":
 		add_to_group("Bigo")
 		pum = PUM.instantiate()
@@ -52,6 +64,15 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	manual_time = maxf(0.0, manual_time - delta)
 	pum_cooldown = maxf(0.0, pum_cooldown - delta)
+	ability_cooldown = maxf(0.0, ability_cooldown - delta)
+	ability_time = maxf(0.0, ability_time - delta)
+	if not special_action.is_empty() and Input.is_action_just_pressed(special_action):
+		manual_time = 0.7
+		took_control.emit(self)
+		if ability_cooldown <= 0.0 and is_instance_valid(combat):
+			combat.use(self, special_kind)
+			ability_time = 0.55
+			ability_cooldown = 0.8 if special_kind == "judo" else 1.1
 	var direction: float = Input.get_axis(left_action, right_action)
 	var jumping: bool = Input.is_action_just_pressed(jump_action)
 	if not is_zero_approx(direction) or jumping:
@@ -89,6 +110,10 @@ func _physics_process(delta: float) -> void:
 	walk_time += delta * absf(velocity.x) * 0.04
 	sprite.rotation = sin(walk_time) * 0.025 if absf(velocity.x) > 10.0 else lerpf(sprite.rotation, 0.0, delta * 10.0)
 	sprite.flip_h = face < 0.0
+	if ability_time > 0.0:
+		sprite.rotation = sin(ability_time * 12.0) * (0.12 if special_kind == "judo" else 0.04)
+	if actor_name == "Guilherme":
+		sprite.texture = jedi_frames["force"] if ability_time > 0.0 else jedi_frames["walk" if absf(velocity.x) > 8.0 and sin(walk_time * 2.0) > 0.0 else "idle"]
 
 func hand_position() -> Vector2:
 	return global_position + Vector2(face * 24.0, -75.0)

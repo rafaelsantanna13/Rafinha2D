@@ -111,6 +111,27 @@ sloth_collect={
 "events": [Object(InputEventKey,"physical_keycode":73,"unicode":105)]
 }
 
+rafinha_judo={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":70,"unicode":102)]
+}
+guilherme_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":90,"unicode":122)]
+}
+guilherme_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":88,"unicode":120)]
+}
+guilherme_jump={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":66,"unicode":98)]
+}
+guilherme_force={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":81,"unicode":113)]
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

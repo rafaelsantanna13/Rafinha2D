@@ -55,7 +55,7 @@ jobs:
       - name: Testes de jogo no Godot e isolamento da publicacao
         run: |
           set -o pipefail
-          godot --headless --path . --fixed-fps 60 --script tests/run_adventure.gd -- --adventure-tests 2>&1 | tee godot-tests.log
+          timeout 120 godot --headless --path . --fixed-fps 60 --script tests/run_adventure.gd -- --adventure-tests 2>&1 | tee godot-tests.log
           ! grep -E 'SCRIPT ERROR|ERROR:' godot-tests.log
           python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Exportar o jogo experimental
@@ -74,7 +74,7 @@ jobs:
           fi
           google-chrome --version
           echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
-      - name: Jogar os cinco castelos e testar coleta e toca no Chrome com teclado
+      - name: Jogar os cinco castelos, judo, Forca, Snoopy e coleta no Chrome
         env:
           WEB_TEST_URL: http://127.0.0.1:8765/
         run: |

@@ -15,9 +15,10 @@ var label: Label
 func _ready() -> void:
 	visual = Visual.new()
 	visual.art_id = Catalog.DOGS[dog_id]["art"]
+	visual.is_sleeping = dog_id == "snoopy"
 	add_child(visual)
 	label = $Label
-	label.text = Catalog.DOGS[dog_id]["name"] + "\nChegue pertinho!"
+	label.text = Catalog.DOGS[dog_id]["name"] + ("\nZzz... Chegue pertinho!" if dog_id == "snoopy" else "\nChegue pertinho!")
 
 func _physics_process(delta: float) -> void:
 	if is_rescued:
@@ -30,7 +31,8 @@ func _physics_process(delta: float) -> void:
 	var near: bool = false
 	for body in get_overlapping_bodies():
 		if body.is_in_group("adventure_players") and body.actor_name != "Bicho-preguiça" and (not body.automatic_follow or body.manual_time > 0.0):
-			near = true
+			if dog_id != "snoopy" or body.global_position.distance_to(global_position) <= 80.0:
+				near = true
 	dwell = dwell + delta if near else 0.0
 	visual.animate(delta, false)
 	if near:
@@ -42,6 +44,7 @@ func rescue() -> bool:
 	if is_rescued or not AdventureState.rescue_dog(dog_id):
 		return false
 	is_rescued = true
+	visual.is_sleeping = false
 	label.text = Catalog.DOGS[dog_id]["name"] + (" resgatada!" if Catalog.DOGS[dog_id].get("female", false) else " resgatado!")
 	rescued.emit(dog_id)
 	return true

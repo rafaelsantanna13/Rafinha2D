@@ -8,5 +8,5 @@ left_action = "sloth_left"
 right_action = "sloth_right"
 jump_action = "sloth_jump"
 move_speed = 180.0
-can_auto_follow = false
-allow_recovery = false
+can_auto_follow = true
+allow_recovery = true

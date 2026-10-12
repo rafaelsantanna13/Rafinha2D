@@ -23,8 +23,10 @@ de novo; os resgates feitos antes continuam guardados.
 
 ## Preguiça e cocôs
 
-A preguiça começa no início de cada castelo e **não acompanha o grupo**, mesmo
-com a ajuda ligada ou ao apertar C. Para trazê-la junto, use J/K e U. I recolhe
+A preguiça começa no início de cada castelo e agora alcança o grupo quando
+fica para trás perto da borda. J/K e U continuam controlando-a e interrompem
+o acompanhamento. C reúne os amigos humanos; a preguiça vem pela recuperação
+de borda, com a câmera mantendo-a visível. I recolhe
 um cocô a no máximo 82 pixels, na mesma altura; aparece uma indicação quando
 está ao alcance. É uma brincadeira opcional: nenhum resgate ou passagem exige
 limpar o cenário. Não há castigo por deixar cocôs para trás.
@@ -36,7 +38,8 @@ esses objetos são limpos e o total já recolhido permanece salvo.
 
 ## Escolhas da Rafaela
 
-Fófins e Tokio têm as identidades confirmadas. Há oito amigos novos com nomes
+Fófins, Tokio e Snoopy têm as identidades confirmadas. Snoopy dorme na casinha
+vermelha no quarto castelo e acorda com o resgate. Há oito amigos novos com nomes
 de trabalho: Creme, Cinza, Caramelo, Malhado, Dourado, Chocolate, Branco e
 Pintinhas. Os IDs e desenhos estão no catálogo e podem ser substituídos sem
 reescrever resgate, coleiras ou produção de cocô.
