@@ -106,8 +106,10 @@ const check = (value, name) => {
     await page.waitForTimeout(300);
     s = await probe();
     check(s.actors.Rafinha[0] > rafinhaStart + 15, 'Rafinha original arrow keys move in WebAssembly');
-    await page.keyboard.press('Space'); await page.waitForTimeout(250);
-    check((await probe()).actors.Rafinha[1] < 610, 'Rafinha Space jumps in WebAssembly');
+    const rafJumps = (await probe()).jumps.Rafinha;
+    await page.keyboard.press('Space', {delay: 85});
+    await until(s => s.jumps.Rafinha > rafJumps, 'Rafinha physical Space jump');
+    check(true, 'Rafinha Space executes a real physics jump in WebAssembly');
     await page.waitForTimeout(650);
     await page.keyboard.press('e');
     await page.keyboard.press('h');
@@ -142,7 +144,7 @@ const check = (value, name) => {
     await capture('03b-menu-com-progresso');
     await button('CONTINUAR');
     await until(s => s.level === 1, 'continue saved castle');
-    check((await probe()).dogs.includes('fofins'), 'IndexedDB preserves rescue and castle after browser reload');
+    check((await probe()).dogs.includes('fofins'), 'Local browser storage preserves rescue and castle after immediate reload');
     // Wait for the configured production timer, then collect using real J/K/U/I.
     await until(s => s.poop.length > 0, 'dog produces poop on floor', 22000);
     const before = await probe();
@@ -161,8 +163,10 @@ const check = (value, name) => {
     await page.keyboard.down('j'); await page.waitForTimeout(200); await page.keyboard.up('j');
     await page.waitForTimeout(300);
     check((await probe()).actors['Bicho-preguiça'][0] < rightX - 15, 'Sloth J and K move independently');
-    await page.keyboard.press('u'); await page.waitForTimeout(250);
-    check((await probe()).actors['Bicho-preguiça'][1] < 610, 'Sloth U jumps');
+    const slothJumps = (await probe()).jumps['Bicho-preguiça'];
+    await page.keyboard.press('u', {delay: 85});
+    await until(s => s.jumps['Bicho-preguiça'] > slothJumps, 'sloth physical U jump');
+    check(true, 'Sloth U executes a real physics jump');
     await page.waitForTimeout(650);
     const guiStart = (await probe()).actors.Guilherme[0];
     await page.keyboard.down('z'); await page.waitForTimeout(200); await page.keyboard.up('z');
@@ -231,7 +235,7 @@ const check = (value, name) => {
     console.log('WEB_TEST_SUMMARY:', results.length, 'checks, 0 failures');
   } catch (error) {
     await capture('failure');
-    fs.writeFileSync(path.join(screenshots, 'browser-report.json'), JSON.stringify({passed: results, errors, failure: error.message}, null, 2));
+    fs.writeFileSync(path.join(screenshots, 'browser-report.json'), JSON.stringify({passed: results, errors, failure: error.message, state: await probe()}, null, 2));
     console.error(error);
     process.exitCode = 1;
   } finally { await browser.close(); }

@@ -27,6 +27,7 @@ var world_width: float = 2500.0
 var walk_time: float = 0.0
 var manual_time: float = 0.0
 var coyote_time: float = 0.0
+var jumps_performed: int = 0
 var jump_buffer: float = 0.0
 var pum_cooldown: float = 0.0
 var spawn_point: Vector2
@@ -95,6 +96,7 @@ func _physics_process(delta: float) -> void:
 				jump_buffer = 0.12
 	if jump_buffer > 0.0 and coyote_time > 0.0:
 		velocity.y = JUMP_VELOCITY
+		jumps_performed += 1
 		jump_buffer = 0.0
 		coyote_time = 0.0
 	if direction:

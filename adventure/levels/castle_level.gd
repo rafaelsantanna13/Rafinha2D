@@ -546,9 +546,11 @@ func _update_web_probe(force: bool = false) -> void:
 		return
 	var actors: Dictionary = {}
 	var floors: Dictionary = {}
+	var jumps: Dictionary = {}
 	for actor in players:
 		actors[actor.actor_name] = [snappedf(actor.position.x, 0.1), snappedf(actor.position.y, 0.1)]
 		floors[actor.actor_name] = actor.is_on_floor()
+		jumps[actor.actor_name] = actor.jumps_performed
 	var dog_positions: Array = []
 	for dog in followers.dogs:
 		dog_positions.append([snappedf(dog.position.x, 0.1), snappedf(dog.position.y, 0.1)])
@@ -570,7 +572,7 @@ func _update_web_probe(force: bool = false) -> void:
 	var villains: Array = []
 	for villain in combat.villains:
 		villains.append({"position": [snappedf(villain.position.x, 0.1), snappedf(villain.position.y, 0.1)], "defeated": villain.defeated, "reaction": villain.reaction})
-	var value: String = JSON.stringify({"level": level_index, "release": Catalog.CONTENT_VERSION, "actors": actors, "floors": floors, "dogs": followers.dog_ids,
+	var value: String = JSON.stringify({"level": level_index, "release": Catalog.CONTENT_VERSION, "actors": actors, "floors": floors, "jumps": jumps, "dogs": followers.dog_ids,
 		"dog_positions": dog_positions, "leader": AdventureState.leader_name, "stars": collected_stars,
 		"poop": poop_positions, "poop_collected": AdventureState.poop_collected, "poop_generated": poop.generated, "poop_limit": poop.max_objects,
 		"pending": pending, "platforms": platforms, "villains": villains, "judo_hits": combat.judo_hits, "force_hits": combat.force_hits, "sloth_following": sloth.catching_up, "sloth_visible": sloth_is_visible(), "exit_x": gateway.position.x, "help": help.visible,
