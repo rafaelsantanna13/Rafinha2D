@@ -1,0 +1,70 @@
+name: Publicar Rafinha2D Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Godot 4.5.2 e templates oficiais
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip libfontconfig1
+          base="https://github.com/godotengine/godot-builds/releases/download/4.5.2-stable"
+          curl --fail --location --retry 3 -o /tmp/godot.zip "$base/Godot_v4.5.2-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d /tmp
+          chmod +x /tmp/Godot_v4.5.2-stable_linux.x86_64
+          sudo mv /tmp/Godot_v4.5.2-stable_linux.x86_64 /usr/local/bin/godot
+          curl --fail --location --retry 3 -o /tmp/export_templates.tpz "$base/Godot_v4.5.2-stable_export_templates.tpz"
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.5.2.stable"
+          unzip -q /tmp/export_templates.tpz -d /tmp/godot-templates
+          cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.5.2.stable/"
+          godot --version
+
+      - name: Importar recursos
+        run: godot --headless --path . --editor --import --quit
+
+      - name: Exportar para Web
+        run: |
+          mkdir -p public
+          godot --headless --path . --export-release "Web" public/index.html
+          test -s public/index.html
+          test -s public/index.wasm
+          test -s public/index.pck
+          touch public/.nojekyll
+
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Enviar arquivos da pagina
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Publicar GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
