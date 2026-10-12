@@ -1,0 +1,31 @@
+{
+  "passed": [
+    "Experimental WebAssembly menu starts",
+    "Menu buttons fit on screen with progress: false",
+    "Rafinha original arrow keys move in WebAssembly",
+    "Rafinha Space jumps in WebAssembly",
+    "Help displays all sloth controls",
+    "Bigo reaches and rescues Fófins through keyboard play",
+    "Rafinha conducts the visible guide",
+    "Sloth never follows the group or moves with C regroup",
+    "Fófins persists across Web scenes",
+    "Menu buttons fit on screen with progress: true",
+    "IndexedDB preserves rescue and castle after browser reload",
+    "I cannot collect a distant poop",
+    "Poop disappears after sloth collection",
+    "Sloth J and K move independently",
+    "Sloth U jumps",
+    "Tokio is rescued after Fófins and both keep their guides",
+    "Rafinha completes final platform challenge with accumulated dogs",
+    "New castle follows the three preserved castles",
+    "Four new rescued dogs join the group in castle four",
+    "Richard remains hidden and six dogs persist into castle five",
+    "Player physically discovers a hole and reaches the burrow floor",
+    "Richard emerges as a rabbit and never joins dog rescues",
+    "Five castles, cave exit and ten dogs are playable through to celebration",
+    "Menu buttons fit on screen with progress: true",
+    "Completed five-castle adventure, ten dogs and collected poop persist across browser reload",
+    "No critical browser or Godot script errors: "
+  ],
+  "errors": []
+}
