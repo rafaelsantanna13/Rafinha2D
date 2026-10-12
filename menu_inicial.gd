@@ -61,7 +61,7 @@ func _build_menu() -> void:
 	heading.add_theme_color_override("font_color", Color("#163241"))
 	layout.add_child(heading)
 
-	_add_controls(layout, "RAFINHA", "← / →: andar    ESPAÇO: pular")
+	_add_controls(layout, "RAFINHA", "Setas do teclado: mover    ESPAÇO: pular")
 	_add_controls(layout, "BIGO", "A / D: andar    V: pular    E: pum!")
 	_add_controls(layout, "MARINA", "1 / 3: andar    L: pular")
 
