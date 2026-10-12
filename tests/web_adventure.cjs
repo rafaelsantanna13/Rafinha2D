@@ -81,7 +81,24 @@ const check = (value, name) => {
       if (value.level !== expectedLevel || !value.pending.length) return;
       const dog = value.pending[0];
       await travel('Bigo', 'd', 'v', dog.position[0] - 5, expectedLevel);
-      await until(s => !s.pending.some(item => item.id === dog.id), 'rescue ' + dog.id, 15000);
+      // Correct a coarse walk that stopped beyond the dog on a slower renderer.
+      const deadline = Date.now() + 15000;
+      while (Date.now() < deadline) {
+        const now = await probe();
+        if (!now.pending.some(item => item.id === dog.id)) break;
+        const [x, y] = now.actors.Bigo;
+        const delta = dog.position[0] - x;
+        if (Math.abs(delta) > 28) {
+          const key = delta > 0 ? 'd' : 'a';
+          await page.keyboard.down(key);
+          await page.waitForTimeout(Math.max(45, Math.min(110, Math.abs(delta) / 300 * 1000)));
+          await page.keyboard.up(key);
+        } else if (now.floors.Bigo && y > dog.position[1] + 65) {
+          await page.keyboard.press('v', {delay: 85});
+        }
+        await page.waitForTimeout(350);
+      }
+      await until(s => !s.pending.some(item => item.id === dog.id), 'rescue ' + dog.id, 1000);
     }
   };
   try {

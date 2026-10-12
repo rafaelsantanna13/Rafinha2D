@@ -3,6 +3,12 @@ name: Publicar Rafinha2D Web
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'tests/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/live-check.yml'
+      - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
 permissions:
@@ -82,33 +88,5 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
   verify-live:
-    name: Jogar a versao oficial publicada no Chrome
     needs: deploy
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Preparar Google Chrome
-        run: |
-          npm ci --ignore-scripts
-          node scripts/ignore_deps.cjs
-          npx playwright install --with-deps chromium
-          if ! command -v google-chrome > /dev/null; then
-            npx playwright install --with-deps chrome
-          fi
-          google-chrome --version
-          echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
-      - name: Confirmar Guilherme, judo, Snoopy e as cinco fases no site real
-        env:
-          WEB_TEST_URL: ${{ needs.deploy.outputs.page_url }}?release=${{ github.sha }}
-          WEB_SCREENSHOTS: build/live/screenshots
-        run: npm run test:web
-      - name: Guardar capturas e resultado do site oficial
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: official-live-chrome-evidence
-          path: build/live/screenshots/
+    uses: ./.github/workflows/live-check.yml
