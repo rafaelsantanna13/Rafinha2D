@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var near: bool = false
 	for body in get_overlapping_bodies():
-		if body.is_in_group("adventure_players"):
+		if body.is_in_group("adventure_players") and (not body.automatic_follow or body.manual_time > 0.0):
 			near = true
 	dwell = dwell + delta if near else 0.0
 	visual.animate(delta, false)

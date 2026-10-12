@@ -54,7 +54,7 @@ func _ready() -> void:
 
 func _portrait(parent: HBoxContainer, path: String, dimensions: Vector2) -> void:
 	var image = TextureRect.new()
-	image.texture = load(path)
+	image.texture = UI.cropped_texture(load(path))
 	image.custom_minimum_size = dimensions
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

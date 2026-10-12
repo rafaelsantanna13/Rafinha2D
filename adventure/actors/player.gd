@@ -5,6 +5,7 @@ signal took_control(actor)
 const SPEED: float = 300.0
 const JUMP_VELOCITY: float = -400.0
 const PUM = preload("res://pum_bigo.tscn")
+const UI = preload("res://adventure/ui.gd")
 
 @export var actor_name: String = "Rafinha"
 @export var left_action: String = "ui_left"
@@ -30,9 +31,9 @@ func _ready() -> void:
 	add_to_group("adventure_players")
 	spawn_point = global_position
 	sprite = $Sprite2D
-	sprite.texture = art
+	sprite.texture = UI.cropped_texture(art)
 	if art:
-		var factor: float = art_height / art.get_height()
+		var factor: float = art_height / sprite.texture.get_height()
 		sprite.scale = Vector2(factor, factor)
 		sprite.position.y = -art_height * 0.5
 	$Name.text = actor_name
@@ -63,7 +64,7 @@ func _physics_process(delta: float) -> void:
 	jump_buffer = 0.12 if jumping else maxf(0.0, jump_buffer - delta)
 	if automatic_follow and manual_time <= 0.0:
 		var separation: float = automatic_target.x - global_position.x
-		if absf(separation) > 65.0:
+		if absf(separation) > 25.0:
 			direction = signf(separation)
 			if is_on_floor() and (is_on_wall() or automatic_target.y < global_position.y - 30.0):
 				jump_buffer = 0.12

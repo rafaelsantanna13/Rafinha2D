@@ -24,4 +24,4 @@ func animate(delta: float, moving: bool, celebrating: bool = false) -> void:
 	sprite.rotation = sin(time * 14.0) * 0.025 if moving else 0.0
 
 func collar_position() -> Vector2:
-	return global_position + Vector2(facing * 23.0, -42.0)
+	return global_position + Vector2(facing * 28.0, -17.0)

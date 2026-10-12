@@ -159,7 +159,7 @@ func _physics_process(delta: float) -> void:
 	camera.position = active_actor.global_position + Vector2(100, -245)
 	for actor in players:
 		actor.automatic_follow = AdventureState.assist_friends and actor != active_actor
-		actor.automatic_target = active_actor.global_position - Vector2(active_actor.face * (105 if actor.actor_name == "Rafinha" else 190), 0)
+		actor.automatic_target = formation_target(actor)
 		if actor.automatic_follow and actor.manual_time <= 0.0 and actor.global_position.distance_to(active_actor.global_position) > 750.0:
 			actor.global_position = active_actor.global_position - Vector2(active_actor.face * 90, 5)
 			actor.velocity = Vector2.ZERO
@@ -190,15 +190,29 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _regroup() -> void:
 	for actor in players:
 		if actor != active_actor:
-			actor.global_position = active_actor.global_position - Vector2(active_actor.face * (70 + players.find(actor) * 25), 8)
+			actor.global_position = formation_target(actor) - Vector2(0, 5)
 			actor.velocity = Vector2.ZERO
 	followers.reset_trail()
 	show_message("Todo mundo junto outra vez!")
 
+func formation_target(actor: CharacterBody2D) -> Vector2:
+	var offset: float = 0.0
+	if actor.actor_name == AdventureState.leader_name:
+		offset = -130.0
+	elif active_actor.actor_name == AdventureState.leader_name:
+		var other_names: Array[String] = []
+		for friend in players:
+			if friend != active_actor:
+				other_names.append(friend.actor_name)
+		offset = 115.0 + other_names.find(actor.actor_name) * 115.0
+	else:
+		offset = 115.0
+	return active_actor.global_position + Vector2(active_actor.face * offset, 0)
+
 func _on_dog_rescued(id: String) -> void:
 	followers.add_dog(id, true)
 	_update_hud()
-	show_message("Fófins resgatada! Rafinha segura a guia." if id == "fofins" else "Mais um amigo resgatado! Os dois vêm com vocês.", 5.0)
+	show_message("Fófins resgatada! " + AdventureState.leader_name + " segura a guia." if id == "fofins" else "Mais um amigo resgatado! Os dois vêm com vocês.", 5.0)
 	print("ADVENTURE_RESCUED:", id)
 
 func _add_star(point: Vector2) -> void:

@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_pages:
+        description: Publicar /teste/ somente se a branch estiver autorizada no ambiente github-pages
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -86,13 +91,13 @@ jobs:
             export.log
             build/preview/screenshots/
       - uses: actions/configure-pages@v5
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_pages
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
           path: public
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pages
     needs: verify-build
     runs-on: ubuntu-24.04
     environment:

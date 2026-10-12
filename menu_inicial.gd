@@ -45,7 +45,7 @@ func _build_menu() -> void:
 	layout.add_child(lineup)
 	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg", "res://adventure/art/fofins_idle.svg"]:
 		var portrait = TextureRect.new()
-		portrait.texture = load(path)
+		portrait.texture = UI.cropped_texture(load(path))
 		portrait.custom_minimum_size = Vector2(90, 105)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -66,6 +66,8 @@ func _build_menu() -> void:
 	assist.text = "Os amigos acompanham quem estou controlando"
 	assist.button_pressed = AdventureState.assist_friends
 	assist.add_theme_color_override("font_color", Color("#243449"))
+	for state in ["font_focus_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		assist.add_theme_color_override(state, Color("#243449"))
 	assist.add_theme_font_size_override("font_size", 19)
 	assist.toggled.connect(func(enabled: bool): AdventureState.assist_friends = enabled)
 	layout.add_child(assist)

@@ -2,7 +2,7 @@ extends Node2D
 
 const Catalog = preload("res://adventure/catalog.gd")
 const Visual = preload("res://adventure/dogs/dog_visual.gd")
-const SPACING: float = 72.0
+const SPACING: float = 112.0
 
 var leader: CharacterBody2D
 var dogs: Array[Node2D] = []
@@ -23,7 +23,13 @@ func reset_trail() -> void:
 		return
 	# Seed a spaced, floor-level formation after changing scenes or a recovery.
 	for i in range(100):
-		trail.append(leader.global_position - Vector2(leader.face * i * 5.0, 0.0))
+		var point: Vector2 = leader.global_position - Vector2(leader.face * i * 5.0, 0.0)
+		if i > 0 and is_inside_tree():
+			var query = PhysicsRayQueryParameters2D.create(point - Vector2(0, 5), point + Vector2(0, 400), 1)
+			var floor_hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(query)
+			if not floor_hit.is_empty():
+				point.y = floor_hit["position"].y
+		trail.append(point)
 	for i in range(dogs.size()):
 		dogs[i].global_position = target_at(SPACING * (i + 1))
 		velocities[i] = Vector2.ZERO
