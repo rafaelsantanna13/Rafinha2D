@@ -30,3 +30,25 @@ pulo facilitam o uso por crianças sem trocar as teclas.
 Quatro arquivos de fotografias foram acessados e inspecionados visualmente.
 Dois arquivos apresentam a mesma fotografia frontal; os demais mostram detalhes
 do rosto e perfil. Nenhuma fotografia foi colocada no checkout do repositório.
+
+## Nova expansão — continuidade auditada
+
+A main permaneceu em `7d7077aea3714a86c719201f1566dfecbfd7fd26`.
+Antes da expansão da preguiça, foram verificadas as branches e os PRs abertos:
+`feature/castle-dog-rescue-adventure` estava em
+`1b98f2cd9203408e89f7b468a2c7112b2a9d88f7`, com o PR #1 em rascunho, ainda não
+incorporado. Essa branch continha o catálogo de três fases, a Fófins, o amigo
+provisório, o sistema de resgate/coleiras, o salvamento e a publicação isolada.
+A nova `feature/sloth-poop-richard-two-castles` parte desse commit e preserva
+seu histórico. Não foi criada outra implementação incompatível.
+
+J/K/U/I não estavam em uso nas ações dos protagonistas. Foram adicionadas ações
+próprias da preguiça, mantendo os eventos antigos. O workflow oficial, o script
+original dos personagens e as cenas Mina/pum/menu permanecem idênticos à main.
+A cena mundo_rafinha mantém somente as duas correções de imagens ausentes já
+feitas na expansão anterior. As fotografias de Fófins não foram copiadas; seus
+quatro SVGs também permanecem iguais aos da expansão anterior.
+
+O segundo cão agora é Tokio, fêmea e preta. O ID antigo no save é migrado para
+`tokio`; não é necessário apagar o progresso para receber a expansão. As duas
+novas fases foram acrescentadas após os três castelos inspecionados.
