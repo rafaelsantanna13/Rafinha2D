@@ -1,92 +1,109 @@
 extends Control
 
-# Menu independente da fase: mantém a cena MundoRafinha intacta.
+const UI = preload("res://adventure/ui.gd")
+const Catalog = preload("res://adventure/catalog.gd")
 const GAME_SCENE: String = "res://mundo_rafinha.tscn"
+var reset_confirmation: ConfirmationDialog
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_menu()
+	if OS.has_feature("web"):
+		call_deferred("_web_menu_probe")
+	print("ADVENTURE_MENU_READY")
 
 func _build_menu() -> void:
-	var background := ColorRect.new()
-	background.color = Color("#37dce4")
+	var background = ColorRect.new()
+	background.color = Color("#93dfe9")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
-
-	var center := CenterContainer.new()
+	var castle = TextureRect.new()
+	castle.texture = preload("res://adventure/art/castle_1.svg")
+	castle.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	castle.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	castle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(castle)
+	var center = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(540, 0)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#fff8df")
-	style.border_color = Color("#19313d")
-	style.set_border_width_all(4)
-	style.set_corner_radius_all(18)
-	style.set_content_margin_all(18)
-	panel.add_theme_stylebox_override("panel", style)
+	var panel = UI.panel()
+	panel.custom_minimum_size = Vector2(760, 0)
 	center.add_child(panel)
-
-	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 8)
+	var layout = VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 7)
 	panel.add_child(layout)
-
-	var title := Label.new()
-	title.text = "RAFINHA2D"
+	var title = UI.label("RAFINHA2D", 44)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 38)
-	title.add_theme_color_override("font_color", Color("#163241"))
 	layout.add_child(title)
-
-	var subtitle := Label.new()
-	subtitle.text = "A aventura vai começar!"
+	var subtitle = UI.label("A AVENTURA DOS CASTELOS", 26)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override("font_size", 18)
-	subtitle.add_theme_color_override("font_color", Color("#31495b"))
 	layout.add_child(subtitle)
-
-	var play := Button.new()
-	play.text = "JOGAR"
-	play.custom_minimum_size = Vector2(280, 58)
-	play.add_theme_font_size_override("font_size", 27)
-	play.pressed.connect(_start_game)
+	var lineup = HBoxContainer.new()
+	lineup.alignment = BoxContainer.ALIGNMENT_CENTER
+	lineup.add_theme_constant_override("separation", 28)
+	layout.add_child(lineup)
+	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg", "res://adventure/art/fofins_idle.svg"]:
+		var portrait = TextureRect.new()
+		portrait.texture = load(path)
+		portrait.custom_minimum_size = Vector2(90, 105)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		lineup.add_child(portrait)
+	var play = UI.button("JOGAR", _start_game, true)
+	play.custom_minimum_size.y = 56
 	layout.add_child(play)
-
-	var heading := Label.new()
-	heading.text = "COMO JOGAR — CONTROLES"
-	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	heading.add_theme_font_size_override("font_size", 18)
-	heading.add_theme_color_override("font_color", Color("#163241"))
-	layout.add_child(heading)
-
-	_add_controls(layout, "RAFINHA", "Setas do teclado: mover    ESPAÇO: pular")
-	_add_controls(layout, "BIGO", "A / D: andar    V: pular    E: pum!")
-	_add_controls(layout, "MARINA", "1 / 3: andar    L: pular")
-
-	var hint := Label.new()
-	hint.text = "Use o teclado para movimentar os personagens"
+	if AdventureState.has_save:
+		var caption: String = "VER A FESTA" if AdventureState.finished else "CONTINUAR - CASTELO " + str(AdventureState.current_level + 1)
+		layout.add_child(UI.button(caption, _continue_game))
+	var guide = UI.label("Rafinha: setas esquerda/direita | Espaço: pular\nBigo: A / D: andar | V: pular | E: pum\nMarina: 1 / 3: andar | L: pular", 21)
+	guide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	layout.add_child(guide)
+	var hint = UI.label("Chegue pertinho dos cachorros para resgatar.\nRafinha conduz as guias. Os amigos ajudam na caminhada.", 20)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 15)
-	hint.add_theme_color_override("font_color", Color("#53636b"))
 	layout.add_child(hint)
-
+	var assist = CheckBox.new()
+	assist.text = "Os amigos acompanham quem estou controlando"
+	assist.button_pressed = AdventureState.assist_friends
+	assist.add_theme_color_override("font_color", Color("#243449"))
+	assist.add_theme_font_size_override("font_size", 19)
+	assist.toggled.connect(func(enabled: bool): AdventureState.assist_friends = enabled)
+	layout.add_child(assist)
+	layout.add_child(UI.button("JOGO ORIGINAL", func(): get_tree().change_scene_to_file(GAME_SCENE)))
+	var note = UI.label("EXPERIMENTAL - 3 castelos para a Rafaela testar e escolher", 17)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	layout.add_child(note)
+	var saving = UI.label(AdventureState.save_notice if not AdventureState.save_notice.is_empty() else "Progresso guardado só neste navegador e neste computador.", 17)
+	saving.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	layout.add_child(saving)
+	reset_confirmation = ConfirmationDialog.new()
+	reset_confirmation.title = "Reiniciar a aventura?"
+	reset_confirmation.dialog_text = "Os resgates salvos serão apagados para começar do Castelo da Fófins."
+	reset_confirmation.ok_button_text = "COMEÇAR DE NOVO"
+	reset_confirmation.cancel_button_text = "VOLTAR"
+	reset_confirmation.confirmed.connect(_new_game)
+	add_child(reset_confirmation)
 	play.grab_focus()
 
-func _add_controls(parent: VBoxContainer, name: String, keys: String) -> void:
-	var heading := Label.new()
-	heading.text = name
-	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	heading.add_theme_font_size_override("font_size", 17)
-	heading.add_theme_color_override("font_color", Color("#163241"))
-	parent.add_child(heading)
-	var info := Label.new()
-	info.text = keys
-	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info.add_theme_font_size_override("font_size", 16)
-	info.add_theme_color_override("font_color", Color("#31495b"))
-	parent.add_child(info)
-
 func _start_game() -> void:
-	get_tree().change_scene_to_file(GAME_SCENE)
+	if AdventureState.has_save:
+		reset_confirmation.popup_centered(Vector2i(650, 160))
+	else:
+		_new_game()
+
+func _new_game() -> void:
+	AdventureState.new_adventure()
+	get_tree().change_scene_to_file(Catalog.scene_for(0))
+
+func _continue_game() -> void:
+	var scene: String = "res://adventure/celebration.tscn" if AdventureState.finished else Catalog.scene_for(AdventureState.current_level)
+	get_tree().change_scene_to_file(scene)
+
+func _web_menu_probe() -> void:
+	await get_tree().process_frame
+	var buttons: Array = []
+	for item in find_children("*", "Button", true, false):
+		var rect: Rect2 = item.get_global_rect()
+		buttons.append({"text": item.text, "x": rect.position.x, "y": rect.position.y, "w": rect.size.x, "h": rect.size.y})
+	var value: String = JSON.stringify({"menu": true, "has_save": AdventureState.has_save, "buttons": buttons})
+	JavaScriptBridge.eval("window.rafinhaAdventure = " + value, true)

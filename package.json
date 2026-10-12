@@ -1,0 +1,7 @@
+{
+  "name": "rafinha2d-adventure-checks",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {"test:web": "node tests/web_adventure.cjs"},
+  "devDependencies": {"playwright": "1.51.1"}
+}
