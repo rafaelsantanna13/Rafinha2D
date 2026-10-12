@@ -19,7 +19,7 @@ func _build_menu() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(450, 400)
+	panel.custom_minimum_size = Vector2(450, 460)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("#fff8df")
 	style.border_color = Color("#19313d")
@@ -61,6 +61,7 @@ func _build_menu() -> void:
 	heading.add_theme_color_override("font_color", Color("#163241"))
 	layout.add_child(heading)
 
+	_add_controls(layout, "RAFINHA", "Setas: andar    Espaço: pular")
 	_add_controls(layout, "BIGO", "A / D: andar    V: pular    E: pum!")
 	_add_controls(layout, "MARINA", "1 / 3: andar    L: pular")
 
