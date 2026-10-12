@@ -69,6 +69,11 @@ jobs:
           npm install --ignore-scripts
           node scripts/ignore_deps.cjs
           npx playwright install --with-deps chromium
+          if ! command -v google-chrome > /dev/null; then
+            npx playwright install --with-deps chrome
+          fi
+          google-chrome --version
+          echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
       - name: Jogar os cinco castelos e testar coleta e toca no Chrome com teclado
         env:
           WEB_TEST_URL: http://127.0.0.1:8765/

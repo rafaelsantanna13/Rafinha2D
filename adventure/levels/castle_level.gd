@@ -46,6 +46,7 @@ func _ready() -> void:
 	_build_players()
 	followers = Followers.new()
 	followers.name = "DogsWithLeashes"
+	followers.z_index = 3
 	add_child(followers)
 	_update_leader()
 	for id in AdventureState.rescued_dogs:
@@ -55,6 +56,7 @@ func _ready() -> void:
 			continue
 		var waiting_dog = RescueDog.instantiate()
 		waiting_dog.dog_id = dog_id
+		waiting_dog.z_index = 3
 		waiting_dog.position = data["rescues"][dog_id]
 		waiting_dog.rescued.connect(_on_dog_rescued)
 		add_child(waiting_dog)
@@ -65,6 +67,7 @@ func _ready() -> void:
 		for point in [Vector2(505, 520), Vector2(720, 465), Vector2(1150, 355)]:
 			_add_star(point)
 	poop = PoopManager.new()
+	poop.z_index = 3
 	poop.followers = followers
 	poop.sloth = sloth
 	poop.picked_up.connect(func(total: int):
@@ -163,6 +166,7 @@ func _build_players() -> void:
 	for entry in settings:
 		var actor = Player.instantiate()
 		actor.name = entry[0]
+		actor.z_index = 3
 		actor.actor_name = entry[0]
 		actor.left_action = entry[1]
 		actor.right_action = entry[2]
@@ -177,6 +181,7 @@ func _build_players() -> void:
 		players.append(actor)
 	sloth = Sloth.instantiate()
 	sloth.name = "BichoPreguica"
+	sloth.z_index = 3
 	sloth.art = preload("res://adventure/art/sloth_idle.svg")
 	sloth.art_height = 148.0
 	sloth.position = Vector2(100, FLOOR_Y)
