@@ -58,7 +58,7 @@ const check = (value, name) => {
         if (Math.abs(x - lastX) > 3) stuckSince = Date.now();
         const needsJump = value.platforms.some(([edge, height, width]) => {
           const lip = right ? edge : edge + width;
-          return (right ? x >= lip - 92 && x <= lip + 14 : x <= lip + 92 && x >= lip - 14) && y > height + 4;
+          return (right ? lip <= target : lip >= target) && (right ? x >= lip - 92 && x <= lip + 14 : x <= lip + 92 && x >= lip - 14) && y > height + 4;
         });
         if (value.floors[actor] && (needsJump || Date.now() - stuckSince > 600) && Date.now() - lastJump > 350) {
           await page.keyboard.press(jumpKey, {delay: 45}); lastJump = Date.now();

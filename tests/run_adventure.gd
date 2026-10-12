@@ -227,6 +227,16 @@ func _run() -> void:
 			key(KEY_D, false)
 			key(KEY_V, false)
 			check(bigo.position.x > 2250 and bigo.position.y < 630, "Player exits the hole via real stairs and jumps")
+			level.sloth.global_position = Vector2(1770, 850)
+			level.sloth.velocity = Vector2.ZERO
+			await frames(5)
+			key(KEY_K, true)
+			for i in range(300):
+				key(KEY_U, level.sloth.is_on_floor() and level.sloth.is_on_wall())
+				await frames(1)
+			key(KEY_K, false)
+			key(KEY_U, false)
+			check(level.sloth.position.x > 2250 and level.sloth.position.y < 630, "Slower sloth also exits the cave using K and U only")
 		for waiting in level.rescue_dogs:
 			if is_instance_valid(waiting) and not waiting.is_rescued:
 				level.players[0].global_position = waiting.position

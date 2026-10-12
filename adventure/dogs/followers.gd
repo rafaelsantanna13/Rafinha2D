@@ -27,7 +27,7 @@ func reset_trail() -> void:
 	for i in range(length):
 		var point: Vector2 = leader.global_position + Vector2(direction * i * 5.0, 0.0)
 		if i > 0 and is_inside_tree():
-			var query = PhysicsRayQueryParameters2D.create(point - Vector2(0, 5), point + Vector2(0, 650), 1)
+			var query = PhysicsRayQueryParameters2D.create(point - Vector2(0, 500), point + Vector2(0, 650), 1)
 			var floor_hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(query)
 			if not floor_hit.is_empty():
 				point.y = floor_hit["position"].y
