@@ -1,7 +1,7 @@
 # Arquitetura e escolhas provisórias
 
 Cada cena de castelo possui um `level_index` e usa o mesmo construtor. O catálogo
-define nome, cores, plataforma e cachorro daquele castelo. O estado global guarda
+define nome, cores, plataformas e um dicionário de resgates com posições para cada castelo. O estado global guarda
 IDs dos cachorros, fase atual, fases concluídas e fase desbloqueada.
 
 O resgate reutilizável é uma Area2D. Um protagonista permanece em sua área por
@@ -24,22 +24,38 @@ os IDs e resgates são preservados, não referências a nós de uma cena anterio
 A ajuda dos amigos segue o protagonista controlado mais recentemente, pula
 degraus e recupera um amigo que ficou muito longe. Uma tecla manual sempre tem
 prioridade. Essa ajuda pode ser desligada para manter cada personagem parado
-quando suas teclas não são usadas. C reúne o grupo e reinicia a trilha em casos
-de separação. Essas são escolhas de acessibilidade, não decisões da história.
+quando suas teclas não são usadas. C reúne os três protagonistas e reinicia a trilha em casos
+de separação. A preguiça tem can_auto_follow=false, allow_recovery=false e
+velocidade 180: nenhuma ajuda, recuperação automática ou comando C a move.
+Seu componente estende o controlador comum e acrescenta a coleta por I. Essas são escolhas de acessibilidade, não decisões da história.
 
-Não há buracos letais, inimigos ou minas nas três fases novas. As plataformas têm
-degraus de 55 pixels, compatíveis com o pulo original de -400 e gravidade padrão.
-O último castelo pede três patinhas antes da festa. Segundo cachorro, castelo
-final e desafio são provisórios, identificados como tal na interface.
+As três cenas anteriores permanecem na progressão. O antigo final se chama
+Castelo das Patinhas e mantém o desafio antes dos dois novos castelos. A quarta
+fase tem quatro resgates. A quinta tem quatro resgates e um buraco explorável,
+com chão dividido, piso inferior e degraus dos dois lados. Richard usa uma
+Area2D, com estados HIDDEN, APPEARING e VISIBLE. Só a proximidade manual revela
+o coelho. As colisões permitem entrar e sair; pulos de -400 vencem os degraus
+de 55 pixels mesmo com a velocidade menor da preguiça.
+
+O gerenciador de cocôs aplica um prazo a cada acompanhante (primeira espera de
+8 a 14 segundos, depois 27 a 33 segundos). Um raycast encontra piso próximo e
+um teste de ponto rejeita paredes. Cães no ar não geram objetos. Há no máximo
+12 objetos; tentativas sem piso ou com limite atingido esperam três segundos.
+Um cocô fica coletável até I ser usado pela preguiça a até 82 pixels e 35 pixels
+de diferença vertical. O objeto sai da lista imediatamente, anima por 0,25s e
+é liberado; o ator anima a coleta por 0,55s. O total vai ao estado persistente.
+O gerenciador é desativado e limpo antes de cada transição. A festa não o cria.
 
 O arquivo de progresso usa uma escrita temporária e renomeação. Saves inválidos
 não substituem o estado já carregado. Falhas de escrita geram uma mensagem e não
 impedem o jogo. Na Web, o user:// depende do IndexedDB do navegador, conforme a
 [documentação Godot 4.5](https://docs.godotengine.org/en/4.5/tutorials/export/exporting_for_web.html).
-Não há sincronização entre dispositivos nem coleta de dados pessoais.
+A versão 2 usa o mesmo caminho anterior e migra amigo_provisorio para tokio.
+Uma versão 1 concluída libera o quarto castelo. Não há sincronização entre dispositivos nem coleta de dados pessoais.
 
 `window.rafinhaAdventure` fornece somente informações para os testes de navegador:
-fase, posições, IDs resgatados, patinhas e retângulos dos botões do menu.
+fase, posições, IDs resgatados, patinhas, cocôs, estado do evento, Help,
+plataformas e retângulos dos botões do menu.
 Não expõe funções para teleportar, resgatar ou avançar fases. O teste navegador
 percorre a aventura com teclado e mouse reais.
 

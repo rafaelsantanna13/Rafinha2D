@@ -1,13 +1,15 @@
 # Rafinha2D — A aventura dos castelos
 
 Jogo infantil em **Godot 4.5.2 Standard**, com os desenhos originais da família.
-Nesta branch experimental, Bigo, Rafinha e Marina atravessam três castelos,
-resgatam Fófins e um amigo provisório e chegam juntos a uma festa.
+Nesta branch experimental, Bigo, Rafinha e Marina atravessam cinco castelos,
+resgatam Fófins, Tokio e oito novos amigos. Um bicho-preguiça controlado pelo
+teclado recolhe os cocôs dos cães. Os desenhos e a aventura original continuam
+disponíveis.
 
 - Oficial: https://rafaelsantanna13.github.io/Rafinha2D/
 - Experimento jogável (Sites, login na conta do proprietário): https://rafinha2d-castelos-teste.clean-aspen-8728.chatgpt.site
 - Endereço planejado /teste/: depende de autorização da branch no ambiente GitHub Pages
-- Branch: `feature/castle-dog-rescue-adventure`
+- Branch: `feature/sloth-poop-richard-two-castles`
 
 A **main não foi modificada**. O experimento ainda depende da avaliação da Rafaela.
 
@@ -16,17 +18,20 @@ A **main não foi modificada**. O experimento ainda depende da avaliação da Ra
 Abra o experimento em um computador e clique **JOGAR**.
 Chegue pertinho de um cachorro e espere um instante para resgatar.
 Após o resgate, avance até a porta do próximo castelo.
-No terceiro castelo, recolha as três patinhas nas plataformas e encontre a festa.
+No terceiro castelo, recolha as três patinhas e continue. Há quatro cachorros
+para resgatar em cada um dos dois castelos seguintes. A festa encerra o quinto.
 
 | Personagem | Andar | Pular | Especial |
 | --- | --- | --- | --- |
 | Rafinha | Setas esquerda/direita | Espaço | Conduz as guias por padrão |
 | Bigo | A / D | V | E: pum original |
 | Marina | 1 / 3 | L | — |
+| Bicho-preguiça | J / K | U | I: recolher cocô próximo |
 
 **H ou Esc:** ajuda/pausa. **T:** alternar ajuda dos amigos.
-**C:** reunir os personagens e cachorros.
-Os amigos acompanham quem está sendo controlado quando a ajuda está ligada.
+**C:** reunir Rafinha, Bigo, Marina e cachorros. **A preguiça não é movida por C.**
+Rafinha, Bigo e Marina acompanham quem está sendo controlado quando a ajuda
+está ligada. A preguiça só anda com J/K e U, mesmo com essa ajuda ligada.
 Todos continuam jogáveis pelas suas próprias teclas, inclusive simultaneamente.
 A ajuda pode ser desligada no menu ou com T.
 Na ajuda, também é possível trocar as guias entre Rafinha e Bigo.
@@ -37,11 +42,13 @@ quando existe progresso, uma confirmação evita apagá-lo por acidente.
 
 ## Salvamento
 
-Fases concluídas, fase desbloqueada, cachorros resgatados e opções ficam em
+Fases concluídas, fase desbloqueada, cachorros resgatados, cocôs recolhidos e opções ficam em
 `user://castle_adventure_v1.json`. Na Web, o armazenamento é local ao navegador
 e ao computador. Não há sincronização em nuvem. Bloqueios de armazenamento são
-informados sem impedir o jogo. As patinhas do desafio final recomeçam ao voltar
+informados sem impedir o jogo. As patinhas do terceiro castelo recomeçam ao voltar
 para esse castelo; os cachorros e as fases concluídas continuam salvos.
+O save anterior é compatível: o amigo provisório vira Tokio e uma aventura
+antiga concluída desbloqueia o quarto castelo.
 
 ## Abrir e testar no Godot
 
@@ -68,8 +75,10 @@ com `python3 -m http.server 8765 --directory build/preview` e execute
 
 - `adventure/catalog.gd`: castelos, identidade dos cachorros e cores.
 - `adventure/state.gd`: progressão, salvamento e validação.
-- `adventure/actors/`: três personagens com os desenhos e comandos originais.
+- `adventure/actors/`: personagens originais e componente próprio da preguiça manual.
 - `adventure/dogs/`: resgate por proximidade, estados visuais, trilha e guias.
+- `adventure/poop/`: temporizadores, geração segura, limite e coleta por proximidade.
+- `adventure/events/`: eventos de descoberta reutilizáveis.
 - `adventure/levels/`: cenas independentes e construtor compartilhado de fases.
 - `adventure/art/`: SVGs transparentes dos cachorros e cenários.
 - `scripts/generate_art.py`: fonte reproduzível dos desenhos novos.
@@ -115,8 +124,11 @@ Pull requests executam verificações, mas não publicam.
 
 ## Decisões ainda da Rafaela
 
-Os três castelos são uma demonstração técnica. Nome e desenho do segundo
-cachorro, quantidade definitiva de castelos e desafio final estão abertos.
+Fófins é a primeira cachorrinha; Tokio é a segunda, fêmea e inteiramente preta.
+Os oito novos amigos têm identidades provisórias. Quantidade definitiva de
+castelos, temas, desenhos novos e frequência dos cocôs continuam abertos à Rafaela.
+As duas fases adicionais são o Castelo dos Muitos Cachorros e o Castelo da Toca
+Secreta. [Guia reservado aos responsáveis, com spoiler](docs/expansion-parent-guide.md).
 Os resgates não inventam vilões nem a razão de os cachorros estarem nos castelos.
 
 Fófins foi desenhada em SVG usando as quatro fotografias fornecidas como

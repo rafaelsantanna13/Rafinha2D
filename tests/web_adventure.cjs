@@ -126,6 +126,7 @@ const check = (value, name) => {
     await page.waitForTimeout(1700);
     await page.reload({waitUntil: 'load'});
     await until(s => s.menu && s.has_save && s.buttons?.length, 'persisted menu', 120000);
+    await capture('03b-menu-com-progresso');
     await button('CONTINUAR');
     await until(s => s.level === 1, 'continue saved castle');
     check((await probe()).dogs.includes('fofins'), 'IndexedDB preserves rescue and castle after browser reload');

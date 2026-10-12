@@ -52,10 +52,16 @@ func _build_menu() -> void:
 		lineup.add_child(portrait)
 	var play = UI.button("JOGAR", _start_game, true)
 	play.custom_minimum_size.y = 56
-	layout.add_child(play)
+	var actions = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 12)
+	layout.add_child(actions)
+	play.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(play)
 	if AdventureState.has_save:
 		var caption: String = "VER A FESTA" if AdventureState.finished else "CONTINUAR - CASTELO " + str(AdventureState.current_level + 1)
-		layout.add_child(UI.button(caption, _continue_game))
+		var continue_button = UI.button(caption, _continue_game)
+		continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_child(continue_button)
 	var guide = UI.label("Rafinha: setas esquerda/direita | Espaço: pular\nBigo: A / D: andar | V: pular | E: pum\nMarina: 1 / 3: andar | L: pular\nPreguiça: J / K: andar | U: pular | I: recolher cocô", 21)
 	guide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(guide)
