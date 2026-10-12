@@ -53,7 +53,7 @@ func _ready() -> void:
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(note)
 	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.rafinhaAdventure = {finished:true}", true)
+		JavaScriptBridge.eval("window.rafinhaAdventure = " + JSON.stringify({"finished": true, "dogs": AdventureState.rescued_dogs, "poop_collected": AdventureState.poop_collected}), true)
 	print("ADVENTURE_CELEBRATION_READY")
 
 func _portrait(parent: Container, path: String, dimensions: Vector2) -> void:

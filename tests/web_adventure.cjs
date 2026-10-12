@@ -40,6 +40,7 @@ const check = (value, name) => {
   const capture = async name => page.screenshot({path: path.join(screenshots, name + '.png')});
   const button = async prefix => {
     const value = await until(s => s.menu && s.buttons && s.buttons.length, 'menu layout');
+    check(value.buttons.every(b => b.y >= 0 && b.y + b.h <= 720), 'Menu buttons fit on screen with progress: ' + value.has_save);
     const item = value.buttons.find(b => b.text.startsWith(prefix));
     if (!item) throw new Error('Missing menu button: ' + prefix);
     await page.mouse.click(item.x + item.w / 2, item.y + item.h / 2);
@@ -190,7 +191,7 @@ const check = (value, name) => {
     await until(s => s.menu && s.has_save && s.buttons?.length, 'completed save menu', 120000);
     await button('VER A FESTA');
     await until(s => s.finished, 'saved completion');
-    check(true, 'Completed five-castle adventure and collected poop persist across browser reload');
+    check((await probe()).dogs.length === 10 && (await probe()).poop_collected >= 1, 'Completed five-castle adventure, ten dogs and collected poop persist across browser reload');
     check(errors.length === 0, 'No critical browser or Godot script errors: ' + errors.join('\n'));
     fs.writeFileSync(path.join(screenshots, 'browser-report.json'), JSON.stringify({passed: results, errors}, null, 2));
     console.log('WEB_TEST_SUMMARY:', results.length, 'checks, 0 failures');
