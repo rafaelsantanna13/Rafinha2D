@@ -77,6 +77,16 @@ jobs:
       - name: Copiar a publicacao oficial sem alterar seus arquivos
         if: github.event_name != 'pull_request'
         run: python3 scripts/compose_pages.py --source-sha '${{ github.sha }}'
+      - name: Preparar e validar o preview em hospedagem separada
+        run: |
+          python3 scripts/prepare_free_preview.py
+          python3 -m http.server 8767 --directory build/free-preview > /tmp/free-preview-server.log 2>&1 &
+          node tests/web_compressed_smoke.cjs
+      - name: Guardar exportacao para o preview gratuito
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-preview-export
+          path: build/free-preview/
       - name: Confirmar que a versao oficial continua identica
         if: github.event_name != 'pull_request'
         run: python3 scripts/compose_pages.py --verify --check-remote
