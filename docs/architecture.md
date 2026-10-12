@@ -15,7 +15,7 @@ Bigo. Não são implementadas forças físicas nas guias: elas são visuais para
 evitar que prender um cachorro numa quina imobilize uma criança.
 
 Os cachorros seguem uma trilha espacial do condutor, incluindo altura dos pulos.
-O espaçamento é 72 pixels e o movimento tem aceleração e desaceleração graduais.
+O espaçamento é 112 pixels e o movimento tem aceleração e desaceleração graduais.
 Uma Curve2D liga a mão do condutor à coleira de cada cachorro. Isso evita um
 cachorro tentar atravessar sozinho uma plataforma que não consegue alcançar.
 A trilha e as posições são reconstruídas em cada castelo usando a lista global;
@@ -42,3 +42,8 @@ Não há sincronização entre dispositivos nem coleta de dados pessoais.
 fase, posições, IDs resgatados, patinhas e retângulos dos botões do menu.
 Não expõe funções para teleportar, resgatar ou avançar fases. O teste navegador
 percorre a aventura com teclado e mouse reais.
+
+A hospedagem alternativa serve a exportação Godot em um Site privado do
+proprietário. O loader do HTML descompacta somente a resposta WASM com gzip;
+a engine e o pacote do jogo continuam sem alteração. A exportação padrão
+sem compactação continua disponível para GitHub Pages e outras hospedagens.

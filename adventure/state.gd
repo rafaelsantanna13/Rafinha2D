@@ -90,6 +90,8 @@ func save_progress() -> bool:
 		_save_failed()
 		return false
 	has_save = true
+	saving_available = not OS.has_feature("web") or OS.is_userfs_persistent()
+	save_notice = "" if saving_available else "Este navegador não guarda o progresso após fechar."
 	save_status_changed.emit()
 	return true
 

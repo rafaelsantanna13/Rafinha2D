@@ -2,6 +2,6 @@
   "name": "rafinha2d-adventure-checks",
   "private": true,
   "version": "1.0.0",
-  "scripts": {"test:web": "node tests/web_adventure.cjs"},
+  "scripts": {"postinstall": "node scripts/ignore_deps.cjs", "test:web": "node scripts/ignore_deps.cjs && node tests/web_adventure.cjs"},
   "devDependencies": {"playwright": "1.51.1"}
 }

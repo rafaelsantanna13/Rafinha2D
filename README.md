@@ -5,7 +5,8 @@ Nesta branch experimental, Bigo, Rafinha e Marina atravessam três castelos,
 resgatam Fófins e um amigo provisório e chegam juntos a uma festa.
 
 - Oficial: https://rafaelsantanna13.github.io/Rafinha2D/
-- Experimento: https://rafaelsantanna13.github.io/Rafinha2D/teste/
+- Experimento jogável (Sites, login na conta do proprietário): https://rafinha2d-castelos-teste.clean-aspen-8728.chatgpt.site
+- Endereço planejado /teste/: depende de autorização da branch no ambiente GitHub Pages
 - Branch: `feature/castle-dog-rescue-adventure`
 
 A **main não foi modificada**. O experimento ainda depende da avaliação da Rafaela.
@@ -82,7 +83,7 @@ e a formação crescem com o catálogo. A primeira cachorrinha permanece Fófins
 ## Publicação experimental
 
 O workflow `adventure-preview.yml` executa os testes e exporta o Godot da branch.
-Depois copia **os sete arquivos da versão oficial já publicada, sem reconstruí-los**,
+Também prepara uma composição com **os nove arquivos da versão oficial já publicada, sem reconstruí-los**,
 para a raiz do pacote Pages e acrescenta a exportação em `/teste/`.
 Hashes SHA-256 e uma verificação da versão oficial antes da publicação impedem
 que o pacote experimental substitua o conteúdo do jogo oficial.
@@ -95,8 +96,21 @@ versão oficial mais recente e restaurará o teste. A retenção permanente do
 subdiretório em futuras publicações exige aprovar uma atualização do workflow
 oficial. Nenhuma alteração desse tipo foi aplicada à main.
 
-As capturas e o relatório de navegador ficam em `/teste/screenshots/` após uma
-execução bem-sucedida. O manifesto de isolamento fica em `/teste/publication.json`.
+O ambiente `github-pages` deste repositório autoriza somente a main. A tentativa
+de publicar a feature foi rejeitada por essa proteção, que foi preservada.
+Por isso o experimento foi publicado separadamente em **Sites**, com acesso
+privado pela conta do proprietário. O deploy Pages está desligado por padrão;
+`workflow_dispatch.publish_pages` só deve ser usado depois de autorizar a branch.
+
+A publicação Sites usa a exportação real do Godot. O WASM é compactado sem
+perda e descompactado no navegador, preservando os mesmos bytes da engine.
+Chrome, Edge ou Firefox atualizados são recomendados. `prepare_free_preview.py`
+produz o pacote e um teste Chromium verifica esse carregamento. O GitHub Actions
+sempre fornece um artefato `free-preview-export`; uma atualização do preview
+Sites é feita pelo Work a partir dessa exportação, sem alterar a main.
+
+As capturas e o relatório de navegador ficam em [docs/screenshots](docs/screenshots).
+O manifesto da composição Pages fica no artefato `github-pages` do workflow.
 Pull requests executam verificações, mas não publicam.
 
 ## Decisões ainda da Rafaela

@@ -19,7 +19,9 @@ class PublicationTests(unittest.TestCase):
             (self.preview / name).write_bytes(b"experimental:" + name.encode())
         config = {"executable": "index", "fileSizes": {"index.pck": 8, "index.wasm": 8}}
         self.official = {"index.html": ('<script>const GODOT_CONFIG = ' + json.dumps(config) + ';</script><img src="index.png">').encode(),
-                         "index.pck": b"official", "index.wasm": b"wasmfile", "index.js": b"javascript", "index.png": b"splash"}
+                         "index.pck": b"official", "index.wasm": b"wasmfile",
+                         "index.js": b'loader(".audio.worklet.js", ".audio.position.worklet.js")', "index.png": b"splash",
+                         "index.audio.worklet.js": b"worklet", "index.audio.position.worklet.js": b"position"}
         self.output = self.root / "public"
 
     def tearDown(self):
@@ -35,7 +37,7 @@ class PublicationTests(unittest.TestCase):
         for name, data in self.official.items():
             self.assertEqual((self.output / name).read_bytes(), data)
         self.assertNotEqual((self.output / "index.pck").read_bytes(), (self.output / "teste/index.pck").read_bytes())
-        self.assertEqual(len(manifest["official_sha256"]), 5)
+        self.assertEqual(len(manifest["official_sha256"]), 7)
 
     def test_refuses_existing_destination(self):
         self.output.mkdir()

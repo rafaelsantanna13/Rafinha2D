@@ -67,6 +67,7 @@ jobs:
       - name: Instalar navegador de teste
         run: |
           npm install --ignore-scripts
+          node scripts/ignore_deps.cjs
           npx playwright install --with-deps chromium
       - name: Jogar os tres castelos no navegador com teclado
         env:

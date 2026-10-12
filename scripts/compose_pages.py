@@ -52,6 +52,12 @@ def compose(preview, output, official_url=OFFICIAL_URL, source_sha="local"):
         if name in config["fileSizes"] and len(payload) != config["fileSizes"][name]:
             raise ValueError("Official files changed during snapshot; publication stopped")
         original[name] = payload
+    # Godot's loader requests AudioWorklets dynamically; they are not in the HTML.
+    loader = original[config["executable"] + ".js"].decode("utf-8")
+    for suffix in [".audio.worklet.js", ".audio.position.worklet.js"]:
+        if suffix in loader:
+            name = config["executable"] + suffix
+            original[name] = fetch(official_url + name)
     if fetch(official_url) != index:
         raise ValueError("Official index changed during snapshot; publication stopped")
     output.mkdir(parents=True)

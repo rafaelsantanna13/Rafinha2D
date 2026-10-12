@@ -147,6 +147,7 @@ func _run() -> void:
 	state.save_path = good_path
 	state.new_adventure()
 	check(state.rescued_dogs.is_empty() and state.current_level == 0 and not state.finished, "Restart clears adventure progress")
+	check(state.saving_available and state.save_notice.is_empty(), "Storage recovery clears an outdated warning")
 	DirAccess.remove_absolute(state.save_path)
 	print("ADVENTURE_TEST_SUMMARY: ", checks, " checks, ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)

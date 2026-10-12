@@ -1,0 +1,17 @@
+{
+  "passed": [
+    "Experimental WebAssembly menu starts",
+    "Rafinha original arrow keys move in WebAssembly",
+    "Rafinha Space jumps in WebAssembly",
+    "Bigo reaches and rescues Fófins through keyboard play",
+    "Rafinha conducts the visible guide",
+    "Fófins persists across Web scenes",
+    "IndexedDB preserves rescue and castle after browser reload",
+    "Second castle accumulates two dogs",
+    "Rafinha completes final platform challenge with accumulated dogs",
+    "Three castles are playable through to celebration",
+    "Completed adventure persists across browser reload",
+    "No critical browser or Godot script errors: "
+  ],
+  "errors": []
+}
