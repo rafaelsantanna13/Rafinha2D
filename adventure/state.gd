@@ -5,6 +5,7 @@ signal save_status_changed
 
 const Catalog = preload("res://adventure/catalog.gd")
 const SAVE_VERSION = 3
+const WEB_SAVE_KEY = "rafinha2d.castle_progress"
 const DEFAULT_SAVE_PATH = "user://castle_adventure_v1.json"
 
 var save_path: String = DEFAULT_SAVE_PATH
@@ -80,26 +81,39 @@ func save_progress() -> bool:
 		"completed_levels": completed_levels, "rescued_dogs": rescued_dogs,
 		"finished": finished, "poop_collected": poop_collected, "leader_name": leader_name, "assist_friends": assist_friends,
 	}
+	# A synchronous Web snapshot survives an immediate browser reload while
+	# Godot's IndexedDB filesystem is still synchronizing in the background.
+	var web_saved: bool = false
+	if OS.has_feature("web"):
+		var expression: String = "(()=>{try{localStorage.setItem(" + JSON.stringify(WEB_SAVE_KEY) + "," + JSON.stringify(JSON.stringify(data)) + ");return true;}catch(e){return false;}})()"
+		web_saved = bool(JavaScriptBridge.eval(expression, true))
 	var file = FileAccess.open(save_path + ".tmp", FileAccess.WRITE)
 	if file == null:
-		_save_failed()
-		return false
+		return _file_save_failed(web_saved)
 	file.store_string(JSON.stringify(data))
 	file.flush()
 	var error: Error = file.get_error()
 	file.close()
 	if error != OK:
-		_save_failed()
-		return false
+		return _file_save_failed(web_saved)
 	var result: Error = DirAccess.rename_absolute(save_path + ".tmp", save_path)
 	if result != OK:
-		_save_failed()
-		return false
+		return _file_save_failed(web_saved)
+	_mark_save_success(web_saved)
+	return true
+
+func _mark_save_success(web_saved: bool) -> void:
 	has_save = true
-	saving_available = not OS.has_feature("web") or OS.is_userfs_persistent()
+	saving_available = web_saved or not OS.has_feature("web") or OS.is_userfs_persistent()
 	save_notice = "" if saving_available else "Este navegador não guarda o progresso após fechar."
 	save_status_changed.emit()
-	return true
+
+func _file_save_failed(web_saved: bool) -> bool:
+	if web_saved:
+		_mark_save_success(true)
+		return true
+	_save_failed()
+	return false
 
 func _save_failed() -> void:
 	saving_available = false
@@ -107,10 +121,17 @@ func _save_failed() -> void:
 	save_status_changed.emit()
 
 func load_progress() -> bool:
-	if not FileAccess.file_exists(save_path):
-		return false
+	var raw: String = ""
+	if OS.has_feature("web"):
+		var stored = JavaScriptBridge.eval("(()=>{try{return localStorage.getItem(" + JSON.stringify(WEB_SAVE_KEY) + ");}catch(e){return null;}})()", true)
+		if stored is String:
+			raw = stored
+	if raw.is_empty():
+		if not FileAccess.file_exists(save_path):
+			return false
+		raw = FileAccess.get_file_as_string(save_path)
 	var json = JSON.new()
-	if json.parse(FileAccess.get_file_as_string(save_path)) != OK:
+	if json.parse(raw) != OK:
 		save_notice = "O progresso antigo não pôde ser aberto. Comece uma nova aventura."
 		return false
 	var parsed = json.data

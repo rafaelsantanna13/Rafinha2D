@@ -23,7 +23,9 @@ dormindo em cima da casinha vermelha, cujo telhado possui colisão e degraus
 para alcançar. O resgate o acorda, anima e acrescenta à formação com coleira.
 A fase exige Snoopy e os quatro resgates já existentes. São onze cães no total.
 
-O save versão 3 aceita versões 1 e 2. Quem já concluiu a aventura sem Snoopy
+O save versão 3 aceita versões 1 e 2. Uma cópia local síncrona na Web evita
+reverter de fase ao recarregar antes de terminar a sincronização IndexedDB.
+O arquivo Godot permanece como compatibilidade e fallback. Quem já concluiu a aventura sem Snoopy
 retorna ao quarto castelo, mantendo os cães anteriores e o total coletado.
 
 ## Verificação

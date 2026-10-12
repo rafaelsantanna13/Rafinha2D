@@ -135,7 +135,8 @@ const check = (value, name) => {
     await travel('Guilherme', 'x', 'b', 2300, 0);
     await until(s => s.level === 1, 'second castle transition');
     check((await probe()).dogs.includes('fofins'), 'Fófins persists across Web scenes');
-    await page.waitForTimeout(1700);
+    check(await page.evaluate(() => JSON.parse(localStorage.getItem("rafinha2d.castle_progress")).current_level === 1), "Web snapshot saves the castle immediately");
+    await page.waitForTimeout(250);
     await page.reload({waitUntil: 'load'});
     await until(s => s.menu && s.has_save && s.buttons?.length, 'persisted menu', 120000);
     await capture('03b-menu-com-progresso');
@@ -168,6 +169,8 @@ const check = (value, name) => {
     await page.waitForTimeout(300);
     check((await probe()).actors.Guilherme[0] < guiStart - 15, 'Guilherme Z moves left with his own keys');
     await travel('Guilherme', 'x', 'b', 1450, 1);
+    await page.waitForTimeout(850);
+    await page.keyboard.press('q');
     await until(s => s.force_hits > 0, 'Guilherme Force opens castle passage');
     check((await probe()).villains.some(v => v.reaction === 'force' && v.defeated), 'Guilherme Q pushes the cabeçudinho with the Force');
     await capture('04c-guilherme-forca');

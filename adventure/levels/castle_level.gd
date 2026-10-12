@@ -530,7 +530,8 @@ func _update_hud() -> void:
 		for id in data["rescues"]:
 			if id in AdventureState.rescued_dogs:
 				rescued_here += 1
-		objective.text = data["hint"] + ("  " + str(rescued_here) + " / " + str(data["rescues"].size()) if data["rescues"].size() > 1 else "")
+		var hint: String = "Snoopy já vem com vocês! Busque os amigos que ainda esperam." if data.get("main_rescue", "") == "snoopy" and "snoopy" in AdventureState.rescued_dogs else data["hint"]
+		objective.text = hint + ("  " + str(rescued_here) + " / " + str(data["rescues"].size()) if data["rescues"].size() > 1 else "")
 	if not AdventureState.save_notice.is_empty():
 		guide_label.text += "    Progresso só nesta sessão."
 

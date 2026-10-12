@@ -53,6 +53,8 @@ O formato atual é versão 3 e aceita os formatos anteriores. Um progresso que
 já passou do quarto castelo volta a ele para resgatar Snoopy, preservando os
 outros cães e o contador. O antigo amigo provisório é convertido para Tokio.
 
+Na Web, uma cópia imediata em localStorage protege recarregamentos rápidos;
+o arquivo Godot/IndexedDB também é mantido para compatibilidade.
 O armazenamento é local ao navegador, computador e endereço do site. Não há
 sincronização em nuvem nem transferência automática entre o preview e o site
 oficial. JOGAR confirma o reinício quando já existe progresso. Patinhas e a

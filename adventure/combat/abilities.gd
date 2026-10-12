@@ -11,6 +11,7 @@ func use(actor: CharacterBody2D, kind: String) -> int:
 		return 0
 	var radius: float = 130.0 if kind == "judo" else 320.0
 	var hits: int = 0
+	var pulse_direction: float = actor.face
 	for villain in villains:
 		var offset: Vector2 = villain.global_position - actor.global_position
 		if not villain.defeated and offset.length() <= radius and absf(offset.y) <= 110.0:
@@ -18,7 +19,9 @@ func use(actor: CharacterBody2D, kind: String) -> int:
 				hits += 1
 	var effect = Pulse.new()
 	effect.kind = kind
-	effect.direction = actor.face
+	effect.direction = pulse_direction
+	if hits > 0:
+		actor.face = pulse_direction
 	effect.position = actor.hand_position()
 	effect.z_index = 5
 	add_child(effect)
