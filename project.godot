@@ -94,6 +94,23 @@ direitamarina={
 ]
 }
 
+sloth_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":74,"unicode":106)]
+}
+sloth_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":75,"unicode":107)]
+}
+sloth_jump={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":85,"unicode":117)]
+}
+sloth_collect={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":73,"unicode":105)]
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

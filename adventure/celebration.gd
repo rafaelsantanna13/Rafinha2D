@@ -10,7 +10,7 @@ func _ready() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	var castle = TextureRect.new()
-	castle.texture = preload("res://adventure/art/castle_3.svg")
+	castle.texture = preload("res://adventure/art/castle_5.svg")
 	castle.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	castle.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	castle.modulate = Color(1, 1, 1, 0.45)
@@ -19,29 +19,33 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel = UI.panel()
-	panel.custom_minimum_size = Vector2(820, 0)
+	panel.custom_minimum_size = Vector2(900, 0)
 	center.add_child(panel)
 	var layout = VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 14)
+	layout.add_theme_constant_override("separation", 9)
 	panel.add_child(layout)
-	var title = UI.label("VIVA! TODOS JUNTOS!", 44)
+	var title = UI.label("VIVA! TODOS JUNTOS!", 38)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(title)
-	var message = UI.label("Bigo, Rafinha e Marina chegaram com os cachorros!", 25)
+	var message = UI.label("Bigo, Rafinha, Marina e a preguiça chegaram com os cachorros!", 23)
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(message)
 	var lineup = HBoxContainer.new()
 	lineup.alignment = BoxContainer.ALIGNMENT_CENTER
 	lineup.add_theme_constant_override("separation", 20)
 	layout.add_child(lineup)
-	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg"]:
-		_portrait(lineup, path, Vector2(110, 165))
+	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg", "res://adventure/art/sloth_idle.svg"]:
+		_portrait(lineup, path, Vector2(100, 125))
+	var dogs_center = CenterContainer.new()
+	layout.add_child(dogs_center)
+	var grid = GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 15)
+	grid.add_theme_constant_override("v_separation", 8)
+	dogs_center.add_child(grid)
 	for id in AdventureState.rescued_dogs:
-		_portrait(lineup, "res://adventure/art/" + Catalog.DOGS[id]["art"] + "_rescue.svg", Vector2(115, 125))
-	var names: PackedStringArray = []
-	for id in AdventureState.rescued_dogs:
-		names.append(Catalog.DOGS[id]["name"])
-	var dogs = UI.label("Cachorros resgatados: " + ", ".join(names), 23)
+		_portrait(grid, "res://adventure/art/" + Catalog.DOGS[id]["art"] + "_rescue.svg", Vector2(100, 78))
+	var dogs = UI.label("Cachorros resgatados: " + str(AdventureState.rescued_dogs.size()) + "    Cocôs recolhidos: " + str(AdventureState.poop_collected), 23)
 	dogs.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(dogs)
 	layout.add_child(UI.button("VOLTAR AO MENU", func(): get_tree().change_scene_to_file("res://menu_inicial.tscn"), true))
@@ -52,7 +56,7 @@ func _ready() -> void:
 		JavaScriptBridge.eval("window.rafinhaAdventure = {finished:true}", true)
 	print("ADVENTURE_CELEBRATION_READY")
 
-func _portrait(parent: HBoxContainer, path: String, dimensions: Vector2) -> void:
+func _portrait(parent: Container, path: String, dimensions: Vector2) -> void:
 	var image = TextureRect.new()
 	image.texture = UI.cropped_texture(load(path))
 	image.custom_minimum_size = dimensions

@@ -37,7 +37,7 @@ func _run() -> void:
 	check(state.save_path != state.DEFAULT_SAVE_PATH, "Test save isolated from real progress")
 	state.new_adventure()
 	state.assist_friends = false
-	for path in ["res://menu_inicial.tscn", "res://mundo_rafinha.tscn", "res://Mina.tscn", "res://pum_bigo.tscn", "res://adventure/celebration.tscn", Catalog.scene_for(0), Catalog.scene_for(1), Catalog.scene_for(2)]:
+	for path in ["res://menu_inicial.tscn", "res://mundo_rafinha.tscn", "res://Mina.tscn", "res://pum_bigo.tscn", "res://adventure/celebration.tscn", Catalog.scene_for(0), Catalog.scene_for(1), Catalog.scene_for(2), Catalog.scene_for(3), Catalog.scene_for(4), "res://adventure/actors/sloth.tscn"]:
 		var packed = load(path)
 		check(packed is PackedScene and packed.can_instantiate(), "Scene loads: " + path)
 		if packed is PackedScene:
@@ -50,13 +50,14 @@ func _run() -> void:
 	var original = await scene("res://mundo_rafinha.tscn")
 	check(original.get_node("Rafinha") is CharacterBody2D and original.get_node("Bigo") is CharacterBody2D, "Original game still runs")
 	var level = await scene(Catalog.scene_for(0))
-	check(level.players.size() == 3, "All three original characters are playable")
-	check(not state.rescue_dog("amigo_provisorio"), "Fófins must be rescued first")
+	check(level.players.size() == 4, "Original characters and manual sloth are playable")
+	check(not state.rescue_dog("tokio"), "Fófins must be rescued first")
 	check(not level.request_exit(), "Gate stays closed before rescue")
 	var mappings = [
 		[0, KEY_RIGHT, KEY_LEFT, KEY_SPACE, "ui_right"],
 		[1, KEY_D, KEY_A, KEY_V, "Bigodireita"],
 		[2, KEY_3, KEY_1, KEY_L, "direitamarina"],
+		[3, KEY_K, KEY_J, KEY_U, "sloth_right"],
 	]
 	for row in mappings:
 		var player = level.players[row[0]]
@@ -76,8 +77,28 @@ func _run() -> void:
 		key(row[3], true)
 		await frames(12)
 		key(row[3], false)
-		check(player.position.y < 600.0, player.actor_name + " jumps with original key")
+		check(player.position.y < 600.0, player.actor_name + " jumps with assigned key")
 		await frames(55)
+	var used_keys: Dictionary = {}
+	var conflict: bool = false
+	for action in ["ui_left", "ui_right", "ui_accept", "Bigoesquerda", "Bigodireita", "Bigopula", "Tecla_bigopum", "esquerdamarina", "direitamarina", "pulamarina", "sloth_left", "sloth_right", "sloth_jump", "sloth_collect"]:
+		for event in InputMap.action_get_events(action):
+			if event is InputEventKey:
+				var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+				if used_keys.has(code) and used_keys[code] != action:
+					conflict = true
+				used_keys[code] = action
+	check(not conflict, "No keyboard conflicts among four playable actors")
+	var still_x: float = level.sloth.position.x
+	state.assist_friends = true
+	level._take_control(level.players[1])
+	level.players[1].global_position = Vector2(1800, 625)
+	await frames(100)
+	check(absf(level.sloth.position.x - still_x) < 1.0 and not level.sloth.automatic_follow, "Sloth stays still with assist enabled and distant group")
+	level._regroup()
+	await frames(20)
+	check(absf(level.sloth.position.x - still_x) < 1.0, "C regroup never teleports or moves the sloth")
+	state.assist_friends = false
 	key(KEY_E, true)
 	await frames(3)
 	key(KEY_E, false)
@@ -89,6 +110,45 @@ func _run() -> void:
 	check(level.followers.dog_ids == ["fofins"], "Fófins joins followers")
 	check(level.followers.leader.actor_name == "Rafinha", "Rafinha holds the guides by default")
 	check(not state.rescue_dog("fofins"), "Repeated rescue is idempotent")
+	level.followers.set_physics_process(false)
+	var dog = level.followers.dogs[0]
+	dog.global_position = Vector2(320, 625)
+	level.poop.first_delay = 0.1
+	level.poop.interval_seconds = 5.0
+	level.poop.max_objects = 3
+	level.poop.due_times.clear()
+	await frames(30)
+	check(level.poop.objects.size() > 0 and dog.poop_time > 0.0, "Rescued dog produces visible poop on a timer with an animation")
+	check(level.poop.objects[0].global_position.y > 624.0 and level.poop.objects[0].global_position.y < 626.0, "Poop is placed on a real floor")
+	check(level.poop.safe_ground(Vector2(1350, 450)) == null, "Airborne poop is rejected")
+	check(level.poop.safe_ground(Vector2(450, 600)) == null, "Poop inside a wall is rejected")
+	check(level.poop.safe_ground(Vector2(1350, 1000)) == null, "Poop below the world is rejected")
+	for point in [Vector2(1350, 625), Vector2(1430, 625), Vector2(2100, 625)]:
+		dog.global_position = point
+		level.poop.try_generate(dog)
+	check(level.poop.objects.size() == 3, "Simultaneous poop objects are capped")
+	await frames(330)
+	check(level.poop.objects.size() == 3, "Timer never bypasses object limit")
+	var item = level.poop.objects[0]
+	level.sloth.global_position = item.global_position + Vector2(200, 0)
+	check(not level.poop.collect_near(level.sloth), "Sloth cannot collect from far away")
+	level.sloth.global_position = item.global_position + Vector2(0, -80)
+	check(not level.poop.collect_near(level.sloth), "Sloth cannot collect through another floor")
+	level.players[1].global_position = item.global_position
+	check(not level.poop.collect_near(level.players[1]), "Only the sloth collects poop")
+	level.sloth.global_position = item.global_position + Vector2(30, 0)
+	level.sloth.velocity = Vector2.ZERO
+	await frames(3)
+	key(KEY_I, true)
+	await frames(3)
+	key(KEY_I, false)
+	check(item.collected and state.poop_collected == 1 and level.sloth.collect_time > 0.0, "Nearby I key collects poop and animates the sloth")
+	check(level.poop.objects.size() == 2, "Collected object leaves the collectible list")
+	await frames(20)
+	check(not is_instance_valid(item), "Collected poop disappears after its short effect")
+	level.poop.stop_and_clear()
+	check(level.poop.objects.is_empty() and not level.poop.try_generate(dog), "Transition disables generation and clears poop")
+	level.followers.set_physics_process(true)
 	var leader = level.followers.leader
 	leader.set_physics_process(false)
 	leader.global_position = Vector2(250, 625)
@@ -115,7 +175,7 @@ func _run() -> void:
 	level.players[0].global_position = level.rescue_dog.position
 	level.players[0].velocity = Vector2.ZERO
 	await frames(50)
-	check(state.rescued_dogs == ["fofins", "amigo_provisorio"], "Second rescue accumulates dogs")
+	check(state.rescued_dogs == ["fofins", "tokio"], "Second rescue accumulates dogs")
 	check(level.followers.dogs.size() == 2, "Both dogs appear with guides")
 	level._switch_guide()
 	check(level.followers.leader.actor_name == "Bigo", "Guide can be configured to Bigo")
@@ -132,15 +192,66 @@ func _run() -> void:
 		await frames(5)
 	check(level.collected_stars == 3, "Physical proximity collects final paws")
 	check(not level.collect_star(level.stars[0]), "A paw cannot be counted twice")
-	check(level.request_exit(), "Completing final challenge opens celebration")
+	check(level.request_exit(), "Original paw challenge opens the two added castles")
 	await frames(15)
-	check(state.finished and state.completed_levels == [0, 1, 2], "Three castles completed and final state saved")
-	check(current_scene.name == "FestaDosAmigos", "Celebration scene loads")
-	check(state.load_progress() and state.rescued_dogs.size() == 2 and state.finished, "Progress can be loaded from disk")
+	level = current_scene
+	check(level.level_index == 3 and level.rescue_dogs.size() == 4, "Fourth castle adds four new dogs without replacing old levels")
+	for index in [3, 4]:
+		level = current_scene
+		check(not level.request_exit(), "New castle requires all its rescues: " + str(index))
+		check(level.followers.dogs.size() == (2 if index == 3 else 6), "All earlier dogs continue into castle " + str(index + 1))
+		if index == 4:
+			check(level.richard.state == 0 and not level.richard.rabbit.visible, "Richard is hidden before discovery")
+			var bigo = level.players[1]
+			bigo.global_position = Vector2(1300, 625)
+			bigo.velocity = Vector2.ZERO
+			await frames(5)
+			key(KEY_D, true)
+			await frames(70)
+			key(KEY_D, false)
+			await frames(25)
+			check(bigo.position.x > 1450 and bigo.position.y > 680, "Player physically enters the hole by walking")
+			bigo.global_position = Vector2(1785, 850)
+			bigo.velocity = Vector2.ZERO
+			await frames(100)
+			check(level.richard.state == 2 and level.richard.rabbit.visible, "Real proximity triggers Richard emerging from the burrow")
+			check(not level.richard.appear(), "Surprise happens only once per visit")
+			check(not "richard" in state.rescued_dogs, "Richard is a rabbit, not a rescued dog")
+			key(KEY_D, true)
+			for i in range(260):
+				if bigo.is_on_floor() and bigo.is_on_wall():
+					key(KEY_V, true)
+				else:
+					key(KEY_V, false)
+				await frames(1)
+			key(KEY_D, false)
+			key(KEY_V, false)
+			check(bigo.position.x > 2250 and bigo.position.y < 630, "Player exits the hole via real stairs and jumps")
+		for waiting in level.rescue_dogs:
+			if is_instance_valid(waiting) and not waiting.is_rescued:
+				level.players[0].global_position = waiting.position
+				level.players[0].velocity = Vector2.ZERO
+				await frames(50)
+		check(state.can_finish_level(index) and level.followers.dogs.size() == (6 if index == 3 else 10), "New dogs join the reusable leash formation: " + str(index))
+		level.followers.reset_trail()
+		var minimum_gap: float = INF
+		for i in range(1, level.followers.dogs.size()):
+			minimum_gap = minf(minimum_gap, level.followers.dogs[i].position.distance_to(level.followers.dogs[i - 1].position))
+		check(minimum_gap > 55.0, "Large dog formation has distinct spaced positions: " + str(index))
+		check(level.request_exit(), "New castle progresses: " + str(index))
+		await frames(15)
+	check(state.finished and state.completed_levels == [0, 1, 2, 3, 4], "All five castles completed and final state saved")
+	check(current_scene.name == "FestaDosAmigos", "Celebration scene loads with all dogs")
+	check(state.load_progress() and state.rescued_dogs.size() == 10 and state.finished and state.poop_collected == 1, "Rescues, collection count and completion load from disk")
 	var file = FileAccess.open(state.save_path, FileAccess.WRITE)
 	file.store_string("{invalid")
 	file.close()
-	check(not state.load_progress() and state.rescued_dogs.size() == 2, "Corrupt save is handled without losing in-memory progress")
+	check(not state.load_progress() and state.rescued_dogs.size() == 10, "Corrupt save is handled without losing in-memory progress")
+	file = FileAccess.open(state.save_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"version": 1, "current_level": 2, "unlocked_level": 2, "completed_levels": [0,1,2], "rescued_dogs": ["fofins", "amigo_provisorio"], "finished": true}))
+	file.close()
+	check(state.load_progress() and state.current_level == 3 and state.unlocked_level == 3 and not state.finished, "Old completed save unlocks new expansion")
+	check(state.rescued_dogs == ["fofins", "tokio"], "Old provisional dog save migrates to Tokio without losing Fófins")
 	var good_path: String = state.save_path
 	state.save_path = "user://missing_test_folder/save.json"
 	check(not state.save_progress() and not state.saving_available, "Unavailable storage is reported and play remains possible")

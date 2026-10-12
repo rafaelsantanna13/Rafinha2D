@@ -36,11 +36,33 @@ def dog(kind, state):
 <path d="M53 33 L55 43 M50 43 L53 52 M99 42 L101 51 M23 48 L21 55 M41 46 L40 52" stroke-width="1.2" fill="none"/>
 </g></svg>'''
 
-for kind in ["fofins", "amigo"]:
+DOG_PALETTES = {
+    "tokio": ("#17171e", "#121218", "#22222a", "#24a6bc"),
+    "creme": ("#fff2cc", "#d4b68d", "#fff5df", "#dc5692"),
+    "cinza": ("#a8afc3", "#545b77", "#d8ddeb", "#ef8d2d"),
+    "caramelo": ("#dc944e", "#8b582d", "#edb575", "#586be0"),
+    "malhado": ("#fff9ed", "#3e3433", "#bb8a6a", "#28a878"),
+    "dourado": ("#f1c055", "#c28738", "#ffdc84", "#df6480"),
+    "chocolate": ("#6b4235", "#3c2824", "#986851", "#3bafce"),
+    "branco": ("#fffdf9", "#f2e4d1", "#ffffff", "#9a61d6"),
+    "pintinhas": ("#eee5d7", "#534b44", "#e8d6c2", "#ed7844"),
+}
+for kind in ["fofins", "amigo", *DOG_PALETTES]:
     for state in ["idle", "walk", "rescue", "follow"]:
-        (ROOT / f"{kind}_{state}.svg").write_text(dog(kind, state), encoding="utf-8")
+        art = dog(kind, state)
+        if kind in DOG_PALETTES:
+            coat, ears, face, collar = DOG_PALETTES[kind]
+            for old, new in [("#cf945b", coat), ("#765038", ears), ("#f3ce98", face), ("#24a6bc", collar)]:
+                art = art.replace(old, new)
+            if kind == "tokio":
+                # Black coat everywhere: the only light areas are eye reflections and collar.
+                art = art.replace("#fffbee", "#22222a").replace("#fff4df", "#22222a").replace("#44352f", "#55515f")
+            if kind in ["malhado", "pintinhas"]:
+                spots = '<ellipse cx="31" cy="48" rx="10" ry="7" fill="#453a35" stroke="none"/>' if kind == "malhado" else ''.join(f'<circle cx="{x}" cy="{y}" r="3" fill="#554a43" stroke="none"/>' for x,y in [(24,48),(37,58),(52,48),(64,59)])
+                art = art.replace('<path d="M42 43', spots + '<path d="M42 43')
+        (ROOT / f"{kind}_{state}.svg").write_text(art, encoding="utf-8")
 
-palettes = [("#eed29b", "#f179a4", "#f8e4bc"), ("#bbd5dd", "#8863b5", "#d9e9ed"), ("#e8c3e5", "#526ec8", "#f2ddf0")]
+palettes = [("#eed29b", "#f179a4", "#f8e4bc"), ("#bbd5dd", "#8863b5", "#d9e9ed"), ("#e8c3e5", "#526ec8", "#f2ddf0"), ("#e9b184", "#df695b", "#ffddb4"), ("#a5c6bf", "#4095a0", "#d2e8dc")]
 for index, (stone, roof, light) in enumerate(palettes, 1):
     elements = [f'<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="640" viewBox="0 0 2500 640"><g stroke="#675561" stroke-width="5" stroke-linejoin="round">']
     for x, y in [(135, 190), (850, 110), (1660, 145), (2260, 210)]:
@@ -65,8 +87,41 @@ for index, (stone, roof, light) in enumerate(palettes, 1):
         for x in range(540, 2040, 120):
             elements.append(f'<path d="M{x} 303 L{x+37} 308 L{x+19} 343Z" fill="{roof}"/>')
         elements.append('<path d="M540 303 Q1310 380 2040 303" fill="none" stroke="#735075" stroke-width="3"/>')
+    if index == 4:
+        for x in [630, 1240, 1790]:
+            elements.append(f'<circle cx="{x}" cy="389" r="17" fill="#ffd473"/><path d="M{x-8} 394 Q{x} 375 {x+8} 394Z" fill="#9c6547" stroke="none"/>')
+    if index == 5:
+        for x in range(480, 2080, 190):
+            elements.append(f'<path d="M{x} 350 Q{x+45} 375 {x+20} 430" fill="none" stroke="#638c69" stroke-width="4"/><ellipse cx="{x+17}" cy="388" rx="14" ry="7" fill="#75ad72" stroke="#507b55" stroke-width="2"/>')
     elements.append('</g></svg>')
     (ROOT / f"castle_{index}.svg").write_text("\n".join(elements), encoding="utf-8")
 
 (ROOT / "gate.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="160" height="180"><g stroke="#4c3b48" stroke-width="4" stroke-linejoin="round"><path d="M15 178 V72 Q80 -8 145 72 V178Z" fill="#ffd174"/><path d="M33 178 V78 Q80 16 127 78 V178Z" fill="#795b9b"/><path d="M38 175 V81 Q80 31 122 81 V175Z" fill="#b3ecdf" stroke="none"/><path d="M80 37 V174" fill="none"/><circle cx="68" cy="120" r="5" fill="#ffd174"/><path d="M13 178 H148"/></g></svg>''', encoding="utf-8")
 (ROOT / "paw.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="54" height="54"><circle cx="27" cy="27" r="25" fill="#ffda69" stroke="#68542f" stroke-width="3"/><g fill="#a36947"><ellipse cx="16" cy="19" rx="5" ry="7" transform="rotate(-22 16 19)"/><ellipse cx="27" cy="14" rx="5" ry="7"/><ellipse cx="38" cy="19" rx="5" ry="7" transform="rotate(22 38 19)"/><path d="M14 35 Q15 27 27 24 Q39 27 40 35 Q39 42 32 40 Q27 37 22 40 Q14 42 14 35Z"/></g></svg>''', encoding="utf-8")
+
+# Long limbs, friendly face and a scoop/bag for the manually controlled collector.
+for frame in ["idle", "walk", "collect", "jump"]:
+    stride = 10 if frame == "walk" else 0
+    arm = '<path d="M83 72 Q101 87 103 126 L124 138"/>' if frame == "collect" else '<path d="M85 73 Q109 93 105 129"/>'
+    left_arm = '<path d="M36 74 Q14 94 18 123"/>' if frame != "jump" else '<path d="M36 74 Q7 72 11 38"/>'
+    art = f'''<svg xmlns="http://www.w3.org/2000/svg" width="140" height="170" viewBox="0 0 140 170">
+<g stroke="#4b3930" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+<path d="M44 105 Q{32-stride} 134 {35-stride} 160 L{23-stride} 164 M76 106 Q{87+stride} 132 {83+stride} 160 L{96+stride} 164" fill="none" stroke="#ad8760" stroke-width="15"/>
+<ellipse cx="61" cy="88" rx="29" ry="37" fill="#ad8760"/><ellipse cx="60" cy="92" rx="19" ry="25" fill="#ddc09a" stroke="none"/>
+<g fill="none" stroke="#ad8760" stroke-width="13">{left_arm}{arm}</g>
+<ellipse cx="60" cy="44" rx="34" ry="31" fill="#c4a37b"/>
+<path d="M30 35 Q42 24 60 29 Q76 24 91 37 L87 56 Q60 79 34 55Z" fill="#f7dfbb"/>
+<path d="M37 38 Q45 33 53 43 L49 56 L34 47Z M67 42 Q78 32 86 39 L89 48 L71 57Z" fill="#775b48" stroke="none"/>
+<circle cx="44" cy="44" r="4" fill="#201e21"/><circle cx="78" cy="44" r="4" fill="#201e21"/>
+<circle cx="45" cy="42" r="1.4" fill="white" stroke="none"/><circle cx="79" cy="42" r="1.4" fill="white" stroke="none"/>
+<ellipse cx="61" cy="49" rx="6" ry="4" fill="#392c29"/><path d="M49 58 Q61 70 75 57" fill="none"/>
+<path d="M21 119 l-6 9 m8-5 l-1 8 m2-10 l5 7" fill="none" stroke="#f9e2b3" stroke-width="2"/>
+<path d="M97 121 L116 132 L108 149 L91 145Z" fill="#efa955"/><path d="M97 120 Q107 107 116 132" fill="none"/>
+{('<path d="M121 134 l10 6 l-7 13 l-15-8Z" fill="#94d5cd"/>' if frame == "collect" else '')}
+</g></svg>'''
+    (ROOT / f"sloth_{frame}.svg").write_text(art, encoding="utf-8")
+
+(ROOT / "poop.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40"><g stroke="#5d4035" stroke-width="2.5" stroke-linejoin="round"><path d="M7 36 Q-2 30 10 23 Q3 17 20 12 Q17 7 28 2 Q38 9 30 15 Q45 18 37 25 Q51 32 40 36Z" fill="#b17b50"/><path d="M12 24 Q25 28 37 24 M17 14 Q25 18 32 14" fill="none"/><circle cx="19" cy="28" r="1.5" fill="#45342b"/><circle cx="30" cy="28" r="1.5" fill="#45342b"/><path d="M20 31 Q25 35 30 31" fill="none" stroke-width="1.5"/></g></svg>''', encoding="utf-8")
+(ROOT / "burrow.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="170" height="100"><g stroke="#5f483d" stroke-width="4"><path d="M4 96 Q11 7 85 9 Q156 6 166 96Z" fill="#c39365"/><ellipse cx="85" cy="66" rx="51" ry="29" fill="#443b40"/><path d="M22 62 L31 50 M130 31 L138 43 M42 29 L51 24" stroke="#e4bf8a"/></g></svg>''', encoding="utf-8")
+(ROOT / "burrow_rim.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="170" height="50"><path d="M9 31 Q85 47 163 31 L165 48 L5 48Z" fill="#c39365" stroke="#5f483d" stroke-width="4"/><path d="M28 32 l8-7 m102 5 l8-8" stroke="#e4bf8a" stroke-width="3"/></svg>''', encoding="utf-8")
+(ROOT / "richard.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="100" height="150"><g stroke="#655251" stroke-width="3.5" stroke-linecap="round"><path d="M32 58 Q11 0 28 4 Q48 11 47 60 M55 59 Q58 -4 75 6 Q91 20 69 68" fill="#fff6eb"/><path d="M31 16 Q27 28 38 47 M72 19 Q78 28 65 48" fill="none" stroke="#e8a2ac" stroke-width="7"/><ellipse cx="51" cy="109" rx="30" ry="33" fill="#fff6eb"/><ellipse cx="50" cy="72" rx="34" ry="28" fill="#fff6eb"/><circle cx="36" cy="69" r="6" fill="#29232b"/><circle cx="64" cy="69" r="6" fill="#29232b"/><circle cx="38" cy="67" r="2" fill="white" stroke="none"/><circle cx="66" cy="67" r="2" fill="white" stroke="none"/><path d="M44 78 Q50 74 56 78 L50 84Z" fill="#dd8f9d"/><path d="M39 87 Q49 95 61 86" fill="none"/><path d="M47 89 v8 h8 v-8" fill="white"/><ellipse cx="30" cy="139" rx="17" ry="8" fill="#fff6eb"/><ellipse cx="70" cy="139" rx="17" ry="8" fill="#fff6eb"/><path d="M29 103 Q19 114 31 121 M72 102 Q87 111 74 121" fill="none"/><path d="M20 80 L6 75 M20 85 L5 86 M78 80 L93 75 M78 85 L95 85" fill="none" stroke-width="2"/></g></svg>''', encoding="utf-8")

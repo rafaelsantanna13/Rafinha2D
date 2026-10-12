@@ -5,7 +5,15 @@ const UI = preload("res://adventure/ui.gd")
 const Player = preload("res://adventure/actors/player.tscn")
 const RescueDog = preload("res://adventure/dogs/rescue_dog.tscn")
 const Followers = preload("res://adventure/dogs/followers.gd")
-const WORLD_WIDTH: float = 2500.0
+const Sloth = preload("res://adventure/actors/sloth.tscn")
+const PoopManager = preload("res://adventure/poop/manager.gd")
+const RichardEvent = preload("res://adventure/events/richard.gd")
+var world_width: float = 2500.0
+var ground_rects: Array[Vector4] = []
+var rescue_dogs: Array[Area2D] = []
+var sloth: CharacterBody2D
+var poop: Node2D
+var richard: Area2D
 const FLOOR_Y: float = 625.0
 
 @export var level_index: int = 0
@@ -30,6 +38,10 @@ var exit_cooldown: float = 0.0
 
 func _ready() -> void:
 	data = Catalog.LEVELS[level_index]
+	world_width = data["width"]
+	ground_rects = [Vector4(0, FLOOR_Y, world_width, 140)]
+	if data.get("cave", false):
+		ground_rects = [Vector4(0, FLOOR_Y, 1400, 350), Vector4(2220, FLOOR_Y, world_width - 2220, 350), Vector4(1400, 850, 820, 125)]
 	_build_scenery()
 	_build_players()
 	followers = Followers.new()
@@ -38,16 +50,34 @@ func _ready() -> void:
 	_update_leader()
 	for id in AdventureState.rescued_dogs:
 		followers.add_dog(id)
-	var dog_id: String = data["dog"]
-	if not dog_id.is_empty() and not dog_id in AdventureState.rescued_dogs:
-		rescue_dog = RescueDog.instantiate()
-		rescue_dog.dog_id = dog_id
-		rescue_dog.position = Vector2(1190 if level_index == 0 else 1135, 405)
-		rescue_dog.rescued.connect(_on_dog_rescued)
-		add_child(rescue_dog)
-	if level_index == Catalog.LEVELS.size() - 1:
+	for dog_id in data["rescues"]:
+		if dog_id in AdventureState.rescued_dogs:
+			continue
+		var waiting_dog = RescueDog.instantiate()
+		waiting_dog.dog_id = dog_id
+		waiting_dog.position = data["rescues"][dog_id]
+		waiting_dog.rescued.connect(_on_dog_rescued)
+		add_child(waiting_dog)
+		rescue_dogs.append(waiting_dog)
+		if rescue_dog == null:
+			rescue_dog = waiting_dog
+	if data.get("paws", false):
 		for point in [Vector2(505, 520), Vector2(720, 465), Vector2(1150, 355)]:
 			_add_star(point)
+	poop = PoopManager.new()
+	poop.followers = followers
+	poop.sloth = sloth
+	poop.picked_up.connect(func(total: int):
+		_update_hud()
+		show_message("Oba! Cocô recolhido! Total: " + str(total), 2.5)
+	)
+	add_child(poop)
+	sloth.collector = poop
+	if data.get("cave", false):
+		richard = RichardEvent.new()
+		richard.position = Vector2(1785, 850)
+		richard.discovered.connect(func(): show_message("Surpresa! Oi, Richard!", 5.0))
+		add_child(richard)
 	_build_gateway()
 	_build_hud()
 	_update_hud()
@@ -56,13 +86,14 @@ func _ready() -> void:
 
 func _build_scenery() -> void:
 	var background = Polygon2D.new()
-	background.polygon = PackedVector2Array([Vector2(-1000, -1000), Vector2(3500, -1000), Vector2(3500, 1200), Vector2(-1000, 1200)])
+	background.polygon = PackedVector2Array([Vector2(-1000, -1000), Vector2(world_width + 1000, -1000), Vector2(world_width + 1000, 1200), Vector2(-1000, 1200)])
 	background.color = data["sky"]
 	background.z_index = -10
 	add_child(background)
 	var castle = Sprite2D.new()
 	castle.texture = load("res://adventure/art/castle_" + str(level_index + 1) + ".svg")
-	castle.position = Vector2(WORLD_WIDTH * 0.5, 320)
+	castle.position = Vector2(world_width * 0.5, 320)
+	castle.scale.x = world_width / 2500.0
 	castle.z_index = -8
 	add_child(castle)
 	var sun = Sprite2D.new()
@@ -71,17 +102,19 @@ func _build_scenery() -> void:
 	sun.position = Vector2(220, 145)
 	sun.z_index = -7
 	add_child(sun)
-	_add_platform(Vector4(0, FLOOR_Y, WORLD_WIDTH, 140))
+	for ground in ground_rects:
+		_add_platform(ground)
 	for platform in data["steps"]:
 		_add_platform(platform)
-	for platform in [Vector4(1480, 570, 175, 55), Vector4(1745, 570, 170, 55)]:
-		_add_platform(platform)
-	var grass = Sprite2D.new()
-	grass.texture = preload("res://Mato.svg")
-	grass.scale = Vector2(WORLD_WIDTH / grass.texture.get_width(), 1.0)
-	grass.position = Vector2(WORLD_WIDTH * 0.5, FLOOR_Y + 4)
-	grass.z_index = 2
-	add_child(grass)
+	for ground in ground_rects:
+		if ground.y != FLOOR_Y:
+			continue
+		var grass = Sprite2D.new()
+		grass.texture = preload("res://Mato.svg")
+		grass.scale = Vector2(ground.z / grass.texture.get_width(), 1.0)
+		grass.position = Vector2(ground.x + ground.z * 0.5, FLOOR_Y + 4)
+		grass.z_index = 2
+		add_child(grass)
 	queue_redraw()
 
 func _add_platform(rect: Vector4) -> void:
@@ -99,10 +132,15 @@ func _add_platform(rect: Vector4) -> void:
 func _draw() -> void:
 	if data.is_empty():
 		return
-	draw_rect(Rect2(0, FLOOR_Y, WORLD_WIDTH, 160), Color("#92c572"))
-	draw_line(Vector2(0, FLOOR_Y), Vector2(WORLD_WIDTH, FLOOR_Y), Color("#3b5141"), 5.0)
+	if data.get("cave", false):
+		draw_rect(Rect2(1400, FLOOR_Y, 820, 350), Color("#efd4ae"))
+		draw_rect(Rect2(1420, FLOOR_Y + 15, 780, 210), Color("#e3bc8f"))
+		for i in range(12):
+			draw_circle(Vector2(1440 + i * 63, 820), 4, Color("#bb9675"))
+	for ground in ground_rects:
+		draw_rect(Rect2(ground.x, ground.y, ground.z, ground.w), Color("#92c572") if ground.y == FLOOR_Y else Color("#c5a376"))
+		draw_line(Vector2(ground.x, ground.y), Vector2(ground.x + ground.z, ground.y), Color("#3b5141"), 5.0)
 	var ledges: Array = data["steps"].duplicate()
-	ledges.append_array([Vector4(1480, 570, 175, 55), Vector4(1745, 570, 170, 55)])
 	for platform in ledges:
 		var rect = Rect2(platform.x, platform.y, platform.z, platform.w)
 		draw_rect(rect, data["stone"])
@@ -111,6 +149,8 @@ func _draw() -> void:
 			draw_line(Vector2(x, rect.position.y + 7), Vector2(x, rect.end.y - 6), Color("#96839a"), 2.0)
 	for i in range(36):
 		var flower: Vector2 = Vector2(60 + i * 68, FLOOR_Y + 37 + (i % 3) * 20)
+		if data.get("cave", false) and flower.x > 1400 and flower.x < 2220:
+			continue
 		draw_line(flower, flower + Vector2(0, 14), Color("#467c46"), 3.0)
 		draw_circle(flower, 5.0, Color("#fff1b4") if i % 2 == 0 else Color("#f37fa6"))
 
@@ -130,17 +170,27 @@ func _build_players() -> void:
 		actor.art = entry[4]
 		actor.art_height = entry[5]
 		actor.position = entry[6]
-		actor.world_width = WORLD_WIDTH
+		actor.world_width = world_width
+		actor.world_bottom = 1100.0 if data.get("cave", false) else 820.0
 		actor.took_control.connect(_take_control)
 		add_child(actor)
 		players.append(actor)
+	sloth = Sloth.instantiate()
+	sloth.name = "BichoPreguica"
+	sloth.art = preload("res://adventure/art/sloth_idle.svg")
+	sloth.art_height = 148.0
+	sloth.position = Vector2(100, FLOOR_Y)
+	sloth.world_width = world_width
+	sloth.took_control.connect(_take_control)
+	add_child(sloth)
+	players.append(sloth)
 	active_actor = players[0]
 	camera = Camera2D.new()
 	camera.position = Vector2(640, 360)
 	camera.limit_left = 0
-	camera.limit_right = int(WORLD_WIDTH)
+	camera.limit_right = int(world_width)
 	camera.limit_top = 0
-	camera.limit_bottom = 720
+	camera.limit_bottom = 1000 if data.get("cave", false) else 720
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 5.0
 	add_child(camera)
@@ -158,7 +208,7 @@ func _physics_process(delta: float) -> void:
 		return
 	camera.position = active_actor.global_position + Vector2(100, -245)
 	for actor in players:
-		actor.automatic_follow = AdventureState.assist_friends and actor != active_actor
+		actor.automatic_follow = actor.can_auto_follow and AdventureState.assist_friends and actor != active_actor
 		actor.automatic_target = formation_target(actor)
 		if actor.automatic_follow and actor.manual_time <= 0.0 and actor.global_position.distance_to(active_actor.global_position) > 750.0:
 			actor.global_position = active_actor.global_position - Vector2(active_actor.face * 90, 5)
@@ -168,7 +218,7 @@ func _physics_process(delta: float) -> void:
 		toast_time -= delta
 		toast.visible = toast_time > 0.0
 	for body in gateway.get_overlapping_bodies():
-		if body.is_in_group("adventure_players") and exit_cooldown <= 0.0:
+		if body == active_actor and exit_cooldown <= 0.0:
 			if not request_exit():
 				exit_cooldown = 2.0
 			break
@@ -189,11 +239,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _regroup() -> void:
 	for actor in players:
-		if actor != active_actor:
+		if actor != active_actor and actor.can_auto_follow:
 			actor.global_position = formation_target(actor) - Vector2(0, 5)
 			actor.velocity = Vector2.ZERO
 	followers.reset_trail()
-	show_message("Todo mundo junto outra vez!")
+	show_message("Amigos reunidos! A preguiça continua com suas teclas.")
 
 func formation_target(actor: CharacterBody2D) -> Vector2:
 	var offset: float = 0.0
@@ -202,7 +252,7 @@ func formation_target(actor: CharacterBody2D) -> Vector2:
 	elif active_actor.actor_name == AdventureState.leader_name:
 		var other_names: Array[String] = []
 		for friend in players:
-			if friend != active_actor:
+			if friend != active_actor and friend.can_auto_follow:
 				other_names.append(friend.actor_name)
 		offset = 115.0 + other_names.find(actor.actor_name) * 115.0
 	else:
@@ -212,7 +262,7 @@ func formation_target(actor: CharacterBody2D) -> Vector2:
 func _on_dog_rescued(id: String) -> void:
 	followers.add_dog(id, true)
 	_update_hud()
-	show_message("Fófins resgatada! " + AdventureState.leader_name + " segura a guia." if id == "fofins" else "Mais um amigo resgatado! Os dois vêm com vocês.", 5.0)
+	show_message(Catalog.DOGS[id]["name"] + (" resgatada! " if Catalog.DOGS[id].get("female", false) else " resgatado! ") + AdventureState.leader_name + " segura as guias.", 4.0)
 	print("ADVENTURE_RESCUED:", id)
 
 func _add_star(point: Vector2) -> void:
@@ -248,7 +298,7 @@ func collect_star(star: Area2D) -> bool:
 
 func _build_gateway() -> void:
 	gateway = Area2D.new()
-	gateway.position = Vector2(2270, FLOOR_Y)
+	gateway.position = Vector2(world_width - 230, FLOOR_Y)
 	gateway.collision_layer = 0
 	gateway.collision_mask = 2
 	var collision = CollisionShape2D.new()
@@ -261,7 +311,7 @@ func _build_gateway() -> void:
 	art.texture = preload("res://adventure/art/gate.svg")
 	art.position.y = -85
 	gateway.add_child(art)
-	var label = UI.label("A FESTA!" if level_index == 2 else "PRÓXIMO CASTELO", 22)
+	var label = UI.label("A FESTA!" if level_index == Catalog.LEVELS.size() - 1 else "PRÓXIMO CASTELO", 22)
 	label.position = Vector2(-150, -212)
 	label.size.x = 300
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -272,14 +322,15 @@ func request_exit() -> bool:
 	if transition_pending:
 		return false
 	if not AdventureState.can_finish_level(level_index):
-		show_message("Vamos resgatar " + Catalog.DOGS[data["dog"]]["name"] + " primeiro!")
+		show_message("Ainda há cachorros esperando. Vamos resgatar todos!")
 		return false
-	if level_index == 2 and collected_stars < 3:
+	if data.get("paws", false) and collected_stars < 3:
 		show_message("Faltam " + str(3 - collected_stars) + " patinhas. Vamos procurar juntos!")
 		return false
 	if not AdventureState.complete_level(level_index):
 		return false
 	transition_pending = true
+	poop.stop_and_clear()
 	var target: String = "res://adventure/celebration.tscn" if AdventureState.finished else Catalog.scene_for(AdventureState.current_level)
 	get_tree().call_deferred("change_scene_to_file", target)
 	return true
@@ -290,7 +341,7 @@ func _build_hud() -> void:
 	add_child(hud)
 	var top = UI.panel()
 	top.position = Vector2(18, 16)
-	top.size = Vector2(930, 92)
+	top.size = Vector2(1030, 92)
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(top)
 	var rows = VBoxContainer.new()
@@ -335,17 +386,18 @@ func _build_hud() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	help.add_child(shade)
 	var panel = UI.panel()
-	panel.position = Vector2(250, 95)
-	panel.size = Vector2(780, 530)
+	panel.position = Vector2(210, 50)
+	panel.size = Vector2(860, 620)
 	help.add_child(panel)
 	var layout = VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 12)
+	layout.add_theme_constant_override("separation", 10)
 	panel.add_child(layout)
 	layout.add_child(UI.label("VAMOS JOGAR JUNTOS!", 30))
 	layout.add_child(UI.label("Rafinha: setas esquerda/direita    Espaço: pular", 23))
 	layout.add_child(UI.label("Bigo: A / D: andar    V: pular    E: pum", 23))
 	layout.add_child(UI.label("Marina: 1 / 3: andar    L: pular", 23))
-	layout.add_child(UI.label("Resgate: fique pertinho do cachorro.\nT: liga/desliga a ajuda dos amigos.    C: reunir amigos.", 21))
+	layout.add_child(UI.label("Preguiça: J / K: andar    U: pular    I: recolher cocô", 23))
+	layout.add_child(UI.label("A preguiça só anda com suas teclas. Chegue perto do cocô e use I.\nResgate: fique pertinho do cachorro.\nT: ajuda dos amigos.    C: reunir amigos (a preguiça fica onde está).", 20))
 	layout.add_child(UI.button("TROCAR QUEM SEGURA AS GUIAS", _switch_guide))
 	layout.add_child(UI.button("CONTINUAR JOGANDO", _toggle_help, true))
 	layout.add_child(UI.button("VOLTAR AO MENU", _return_to_menu))
@@ -360,6 +412,7 @@ func _switch_guide() -> void:
 func _toggle_help() -> void:
 	help.visible = not help.visible
 	get_tree().paused = help.visible
+	_update_web_probe(true)
 	if help.visible:
 		help.grab_focus()
 	else:
@@ -374,14 +427,18 @@ func _update_hud() -> void:
 	var names: PackedStringArray = []
 	for id in AdventureState.rescued_dogs:
 		names.append(Catalog.DOGS[id]["name"])
-	dog_label.text = "Cachorros: " + str(names.size()) + ("    " + ", ".join(names) if not names.is_empty() else "    Vamos encontrar a Fófins!")
+	dog_label.text = "Cachorros: " + str(names.size()) + ("    " + ", ".join(names.slice(0, 2)) + (" e mais " + str(names.size() - 2) if names.size() > 2 else "") if not names.is_empty() else "    Vamos encontrar a Fófins!") + "    Cocôs recolhidos: " + str(AdventureState.poop_collected)
 	guide_label.text = AdventureState.leader_name + " conduz os cachorros pelas guias"
-	if level_index == 2:
-		objective.text = "Patinhas: " + str(collected_stars) + " / 3. " + ("Agora vá até a festa!" if collected_stars == 3 else "Suba as plataformas com os amigos.")
+	if data.get("paws", false):
+		objective.text = "Patinhas: " + str(collected_stars) + " / 3. " + ("Agora siga para o próximo castelo!" if collected_stars == 3 else "Suba as plataformas com os amigos.")
 	elif AdventureState.can_finish_level(level_index):
-		objective.text = "Cachorro resgatado! Vá para a porta do próximo castelo."
+		objective.text = "Todos resgatados! Vá até a porta " + ("da festa!" if level_index == Catalog.LEVELS.size() - 1 else "do próximo castelo.")
 	else:
-		objective.text = data["hint"]
+		var rescued_here: int = 0
+		for id in data["rescues"]:
+			if id in AdventureState.rescued_dogs:
+				rescued_here += 1
+		objective.text = data["hint"] + ("  " + str(rescued_here) + " / " + str(data["rescues"].size()) if data["rescues"].size() > 1 else "")
 	if not AdventureState.save_notice.is_empty():
 		guide_label.text += "    Progresso só nesta sessão."
 
@@ -390,9 +447,9 @@ func show_message(message: String, duration: float = 3.0) -> void:
 	toast.visible = true
 	toast_time = duration
 
-func _update_web_probe() -> void:
+func _update_web_probe(force: bool = false) -> void:
 	# Read-only state for browser tests. It provides no game shortcuts.
-	if not OS.has_feature("web") or Engine.get_physics_frames() % 15 != 0:
+	if not OS.has_feature("web") or (not force and Engine.get_physics_frames() % 15 != 0):
 		return
 	var actors: Dictionary = {}
 	var floors: Dictionary = {}
@@ -402,6 +459,21 @@ func _update_web_probe() -> void:
 	var dog_positions: Array = []
 	for dog in followers.dogs:
 		dog_positions.append([snappedf(dog.position.x, 0.1), snappedf(dog.position.y, 0.1)])
+	var poop_positions: Array = []
+	for item in poop.objects:
+		poop_positions.append([snappedf(item.position.x, 0.1), snappedf(item.position.y, 0.1)])
+	var pending: Array = []
+	for id in data["rescues"]:
+		if not id in AdventureState.rescued_dogs:
+			var point: Vector2 = data["rescues"][id]
+			pending.append({"id": id, "position": [point.x, point.y]})
+	var platforms: Array = []
+	for point in data["steps"]:
+		platforms.append([point.x, point.y, point.z, point.w])
 	var value: String = JSON.stringify({"level": level_index, "actors": actors, "floors": floors, "dogs": followers.dog_ids,
-		"dog_positions": dog_positions, "leader": AdventureState.leader_name, "stars": collected_stars})
+		"dog_positions": dog_positions, "leader": AdventureState.leader_name, "stars": collected_stars,
+		"poop": poop_positions, "poop_collected": AdventureState.poop_collected, "poop_generated": poop.generated, "poop_limit": poop.max_objects,
+		"pending": pending, "platforms": platforms, "exit_x": gateway.position.x, "help": help.visible,
+		"help_text": " ".join(help.find_children("*", "Label", true, false).map(func(item): return item.text)),
+		"richard": int(richard.state) if is_instance_valid(richard) else -1})
 	JavaScriptBridge.eval("window.rafinhaAdventure = " + value, true)

@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="PackedScene" path="res://adventure/actors/player.tscn" id="1"]
+[ext_resource type="Script" path="res://adventure/actors/sloth.gd" id="2"]
+[node name="BichoPreguica" instance=ExtResource("1")]
+script = ExtResource("2")
+actor_name = "Bicho-preguiça"
+left_action = "sloth_left"
+right_action = "sloth_right"
+jump_action = "sloth_jump"
+move_speed = 180.0
+can_auto_follow = false
+allow_recovery = false

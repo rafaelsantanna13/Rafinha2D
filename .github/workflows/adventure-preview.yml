@@ -2,7 +2,7 @@ name: Aventura - testes e preview isolado
 
 on:
   push:
-    branches: [feature/castle-dog-rescue-adventure]
+    branches: [feature/castle-dog-rescue-adventure, feature/sloth-poop-richard-two-castles]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -69,7 +69,7 @@ jobs:
           npm install --ignore-scripts
           node scripts/ignore_deps.cjs
           npx playwright install --with-deps chromium
-      - name: Jogar os tres castelos no navegador com teclado
+      - name: Jogar os cinco castelos e testar coleta e toca no Chrome com teclado
         env:
           WEB_TEST_URL: http://127.0.0.1:8765/
         run: |

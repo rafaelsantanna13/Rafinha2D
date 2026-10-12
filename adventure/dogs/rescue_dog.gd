@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var near: bool = false
 	for body in get_overlapping_bodies():
-		if body.is_in_group("adventure_players") and (not body.automatic_follow or body.manual_time > 0.0):
+		if body.is_in_group("adventure_players") and body.actor_name != "Bicho-preguiça" and (not body.automatic_follow or body.manual_time > 0.0):
 			near = true
 	dwell = dwell + delta if near else 0.0
 	visual.animate(delta, false)
@@ -42,6 +42,6 @@ func rescue() -> bool:
 	if is_rescued or not AdventureState.rescue_dog(dog_id):
 		return false
 	is_rescued = true
-	label.text = Catalog.DOGS[dog_id]["name"] + " resgatada!" if dog_id == "fofins" else "Amigo resgatado!"
+	label.text = Catalog.DOGS[dog_id]["name"] + (" resgatada!" if Catalog.DOGS[dog_id].get("female", false) else " resgatado!")
 	rescued.emit(dog_id)
 	return true

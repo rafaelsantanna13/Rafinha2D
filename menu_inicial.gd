@@ -43,10 +43,10 @@ func _build_menu() -> void:
 	lineup.alignment = BoxContainer.ALIGNMENT_CENTER
 	lineup.add_theme_constant_override("separation", 28)
 	layout.add_child(lineup)
-	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg", "res://adventure/art/fofins_idle.svg"]:
+	for path in ["res://1760301079346.svg", "res://Bigo2.svg", "res://Marina.svg", "res://adventure/art/fofins_idle.svg", "res://adventure/art/tokio_idle.svg", "res://adventure/art/sloth_idle.svg"]:
 		var portrait = TextureRect.new()
 		portrait.texture = UI.cropped_texture(load(path))
-		portrait.custom_minimum_size = Vector2(90, 105)
+		portrait.custom_minimum_size = Vector2(90, 90)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		lineup.add_child(portrait)
@@ -56,14 +56,14 @@ func _build_menu() -> void:
 	if AdventureState.has_save:
 		var caption: String = "VER A FESTA" if AdventureState.finished else "CONTINUAR - CASTELO " + str(AdventureState.current_level + 1)
 		layout.add_child(UI.button(caption, _continue_game))
-	var guide = UI.label("Rafinha: setas esquerda/direita | Espaço: pular\nBigo: A / D: andar | V: pular | E: pum\nMarina: 1 / 3: andar | L: pular", 21)
+	var guide = UI.label("Rafinha: setas esquerda/direita | Espaço: pular\nBigo: A / D: andar | V: pular | E: pum\nMarina: 1 / 3: andar | L: pular\nPreguiça: J / K: andar | U: pular | I: recolher cocô", 21)
 	guide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(guide)
-	var hint = UI.label("Chegue pertinho dos cachorros para resgatar.\nRafinha conduz as guias. Os amigos ajudam na caminhada.", 20)
+	var hint = UI.label("Chegue pertinho dos cachorros para resgatar.\nRafinha conduz as guias. A preguiça só anda com suas teclas.", 20)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(hint)
 	var assist = CheckBox.new()
-	assist.text = "Os amigos acompanham quem estou controlando"
+	assist.text = "Ajuda para Rafinha, Bigo e Marina durante a caminhada"
 	assist.button_pressed = AdventureState.assist_friends
 	assist.add_theme_color_override("font_color", Color("#243449"))
 	for state in ["font_focus_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
@@ -72,7 +72,7 @@ func _build_menu() -> void:
 	assist.toggled.connect(func(enabled: bool): AdventureState.assist_friends = enabled)
 	layout.add_child(assist)
 	layout.add_child(UI.button("JOGO ORIGINAL", func(): get_tree().change_scene_to_file(GAME_SCENE)))
-	var note = UI.label("EXPERIMENTAL - 3 castelos para a Rafaela testar e escolher", 17)
+	var note = UI.label("EXPERIMENTAL - 5 castelos para a Rafaela testar e escolher", 17)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(note)
 	var saving = UI.label(AdventureState.save_notice if not AdventureState.save_notice.is_empty() else "Progresso guardado só neste navegador e neste computador.", 17)
