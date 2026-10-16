@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 AdventureState="*res://adventure/state.gd"
+AdventureAudio="*res://adventure/audio.gd"
 
 [display]
 

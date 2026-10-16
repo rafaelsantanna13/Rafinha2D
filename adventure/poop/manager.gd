@@ -1,6 +1,6 @@
 extends Node2D
 
-signal picked_up(total: int)
+signal picked_up(total: int, automatic: bool)
 const Poop = preload("res://adventure/poop/collectible.gd")
 const COLLECT_RADIUS: float = 82.0
 @export var interval_seconds: float = 27.0
@@ -67,7 +67,7 @@ func try_generate(dog: Node2D) -> bool:
 func can_collect(actor: CharacterBody2D, item: Node2D) -> bool:
 	return enabled and actor.actor_name == "Bicho-preguiça" and not item.collected and actor.global_position.distance_to(item.global_position) <= COLLECT_RADIUS and absf(actor.global_position.y - item.global_position.y) <= 35.0
 
-func collect_near(actor: CharacterBody2D) -> bool:
+func collect_near(actor: CharacterBody2D, automatic: bool = false) -> bool:
 	var closest: Node2D
 	var distance: float = INF
 	for item in objects:
@@ -79,8 +79,22 @@ func collect_near(actor: CharacterBody2D) -> bool:
 	objects.erase(closest)
 	AdventureState.poop_collected += 1
 	AdventureState.save_progress()
-	picked_up.emit(AdventureState.poop_collected)
+	picked_up.emit(AdventureState.poop_collected, automatic)
 	return true
+
+# The lazy sloth only cares about old poop on her own floor, inside the view.
+func lazy_target(actor: CharacterBody2D, area: Rect2, min_age: float) -> Node2D:
+	var closest: Node2D
+	var distance: float = INF
+	for item in objects:
+		var point: Vector2 = item.global_position
+		if not enabled or item.collected or item.age < min_age or absf(point.y - actor.global_position.y) > 35.0:
+			continue
+		if point.x < area.position.x or point.x > area.end.x or actor.global_position.distance_to(point) >= distance:
+			continue
+		closest = item
+		distance = actor.global_position.distance_to(point)
+	return closest
 
 func stop_and_clear() -> void:
 	enabled = false

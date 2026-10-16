@@ -1,6 +1,7 @@
 extends Node2D
 
 var collected: bool = false
+var age: float = 0.0
 var sprite: Sprite2D
 var prompt: Label
 
@@ -23,6 +24,9 @@ func _ready() -> void:
 	add_child(prompt)
 	sprite.scale = Vector2(0.3, 0.3)
 	create_tween().tween_property(sprite, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _physics_process(delta: float) -> void:
+	age += delta
 
 func collect() -> bool:
 	if collected:

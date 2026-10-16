@@ -33,6 +33,7 @@ var objective: Label
 var toast: Label
 var guide_label: Label
 var help: Control
+var sound_button: Button
 var gateway: Area2D
 var stars: Array[Area2D] = []
 var collected_stars: int = 0
@@ -64,6 +65,7 @@ func _ready() -> void:
 	for actor in players:
 		actor.combat = combat
 	combat.performed.connect(func(kind: String, hits: int):
+		AdventureAudio.play(kind)
 		show_message(("Judô misterioso! Rodopiou!" if kind == "judo" else "Guilherme usou a Força! Caminho livre!") if hits > 0 else ("Chegue mais perto e use F para o judô." if kind == "judo" else "Aponte a Força para um cabeçudinho próximo."), 2.0)
 	)
 	followers = Followers.new()
@@ -92,9 +94,10 @@ func _ready() -> void:
 	poop.z_index = 3
 	poop.followers = followers
 	poop.sloth = sloth
-	poop.picked_up.connect(func(total: int):
+	poop.picked_up.connect(func(total: int, automatic: bool):
+		AdventureAudio.play("collect", 0.85 if automatic else 1.0)
 		_update_hud()
-		show_message("Oba! Cocô recolhido! Total: " + str(total), 2.5)
+		show_message(("A preguiça recolheu o cocô... bem devagarinho! Total: " if automatic else "Oba! Cocô recolhido! Total: ") + str(total), 2.5)
 	)
 	add_child(poop)
 	sloth.collector = poop
@@ -263,7 +266,7 @@ func _update_leader() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(active_actor) or transition_pending:
 		return
-	_update_sloth_follow()
+	_update_sloth_follow(delta)
 	camera.position = active_actor.global_position + Vector2(100, -245)
 	if sloth.catching_up and active_actor != sloth:
 		var gap: float = absf(active_actor.position.x - sloth.position.x)
@@ -300,10 +303,11 @@ func visible_world_rect() -> Rect2:
 func sloth_is_visible() -> bool:
 	return visible_world_rect().has_point(sloth.position - Vector2(0, sloth.art_height * 0.5))
 
-func _update_sloth_follow() -> void:
+func _update_sloth_follow(delta: float) -> void:
 	if active_actor == sloth or sloth.manual_time > 0.0:
 		sloth.catching_up = false
 		sloth.automatic_follow = false
+		sloth.cancel_chore()
 		return
 	var view: Rect2 = visible_world_rect()
 	var separation: float = absf(active_actor.position.x - sloth.position.x)
@@ -312,8 +316,13 @@ func _update_sloth_follow() -> void:
 		sloth.catching_up = true
 	if separation < 220.0:
 		sloth.catching_up = false
-	sloth.automatic_follow = sloth.catching_up
-	sloth.automatic_target = active_actor.position - Vector2(active_actor.face * 180.0, 0)
+	if sloth.catching_up:
+		sloth.cancel_chore(2.0)
+		sloth.automatic_follow = true
+		sloth.automatic_target = active_actor.position - Vector2(active_actor.face * 180.0, 0)
+	else:
+		# Not controlled and not left behind: lazy automatic poop collection.
+		sloth.automatic_follow = sloth.lazy_step(delta, view)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
@@ -327,6 +336,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			show_message("Os amigos acompanham você." if AdventureState.assist_friends else "Cada personagem anda com suas próprias teclas.")
 		KEY_C:
 			_regroup()
+		KEY_M:
+			_toggle_sound()
 
 func _regroup() -> void:
 	for actor in players:
@@ -352,6 +363,7 @@ func formation_target(actor: CharacterBody2D) -> Vector2:
 
 func _on_dog_rescued(id: String) -> void:
 	followers.add_dog(id, true)
+	AdventureAudio.play("rescue")
 	_update_hud()
 	show_message("Snoopy acordou! Vamos juntos com as guias!" if id == "snoopy" else Catalog.DOGS[id]["name"] + (" resgatada! " if Catalog.DOGS[id].get("female", false) else " resgatado! ") + AdventureState.leader_name + " segura as guias.", 4.0)
 	print("ADVENTURE_RESCUED:", id)
@@ -383,6 +395,7 @@ func collect_star(star: Area2D) -> bool:
 	star.visible = false
 	star.set_deferred("monitoring", false)
 	collected_stars += 1
+	AdventureAudio.play("paw")
 	_update_hud()
 	show_message("Patinha encontrada! " + str(collected_stars) + " de 3")
 	return true
@@ -421,6 +434,7 @@ func request_exit() -> bool:
 	if not AdventureState.complete_level(level_index):
 		return false
 	transition_pending = true
+	AdventureAudio.play("gate")
 	poop.stop_and_clear()
 	var target: String = "res://adventure/celebration.tscn" if AdventureState.finished else Catalog.scene_for(AdventureState.current_level)
 	get_tree().call_deferred("change_scene_to_file", target)
@@ -489,11 +503,28 @@ func _build_hud() -> void:
 	layout.add_child(UI.label("Marina: 1 / 3: andar    L: pular", 23))
 	layout.add_child(UI.label("Preguiça: J / K: andar    U: pular    I: recolher cocô", 23))
 	layout.add_child(UI.label("Guilherme: Z / X: andar    B: pular    Q: Força", 23))
-	layout.add_child(UI.label("F: judô misterioso. Q: afasta cabeçudinhos com a Força.\nPreguiça: use I perto do cocô. Ela vem se ficar na borda.\nResgate: chegue pertinho. T: ajuda dos amigos. C: reunir amigos.", 20))
-	layout.add_child(UI.button("TROCAR QUEM SEGURA AS GUIAS", _switch_guide))
+	layout.add_child(UI.label("F: judô misterioso. Q: afasta cabeçudinhos com a Força.\nPreguiça: I recolhe cocô. Sozinha, ela recolhe bem devagarinho.\nResgate: chegue pertinho. T: ajuda dos amigos. C: reunir. M: som.", 20))
+	var options = HBoxContainer.new()
+	options.add_theme_constant_override("separation", 10)
+	layout.add_child(options)
+	var guide_button = UI.button("TROCAR QUEM SEGURA AS GUIAS", _switch_guide)
+	guide_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	options.add_child(guide_button)
+	sound_button = UI.button("", _toggle_sound)
+	sound_button.custom_minimum_size.x = 230
+	options.add_child(sound_button)
+	_update_sound_button()
 	layout.add_child(UI.button("CONTINUAR JOGANDO", _toggle_help, true))
 	layout.add_child(UI.button("VOLTAR AO MENU", _return_to_menu))
 	help.hide()
+
+func _toggle_sound() -> void:
+	var enabled: bool = AdventureAudio.toggle()
+	_update_sound_button()
+	show_message("Som ligado!" if enabled else "Som desligado.", 2.0)
+
+func _update_sound_button() -> void:
+	sound_button.text = "SOM (M): " + ("LIGADO" if AdventureState.sound_on else "DESLIGADO")
 
 func _switch_guide() -> void:
 	AdventureState.leader_name = "Bigo" if AdventureState.leader_name == "Rafinha" else "Rafinha"

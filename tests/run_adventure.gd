@@ -208,6 +208,47 @@ func _run() -> void:
 	check(level.poop.objects.size() == 2, "Collected object leaves the collectible list")
 	await frames(20)
 	check(not is_instance_valid(item), "Collected poop disappears after its short effect")
+	var lazy_item: Node2D
+	for candidate in level.poop.objects:
+		if absf(candidate.global_position.x - 1362.0) < 30.0:
+			lazy_item = candidate
+	check(is_instance_valid(lazy_item), "A poop waits for the lazy sloth test")
+	level.players[1].global_position = Vector2(1250, 625)
+	level.players[1].velocity = Vector2.ZERO
+	level._take_control(level.players[1])
+	level.sloth.global_position = Vector2(1150, 625)
+	level.sloth.velocity = Vector2.ZERO
+	level.sloth.manual_time = 0.0
+	await frames(60)
+	check(absf(level.sloth.global_position.x - 1150.0) < 2.0 and not lazy_item.collected, "Uncontrolled sloth rests before cleaning up")
+	var lazy_speed: float = 0.0
+	var yawned: bool = false
+	for i in range(900):
+		await frames(1)
+		yawned = yawned or level.sloth.chore == level.sloth.Chore.STRETCHING
+		lazy_speed = maxf(lazy_speed, absf(level.sloth.velocity.x))
+		if not is_instance_valid(lazy_item) or lazy_item.collected:
+			break
+	check(yawned, "Sloth yawns and stretches before walking to the poop")
+	check(lazy_speed > 0.0 and lazy_speed <= level.sloth.LAZY_SPEED + 0.1, "Sloth walks to poop slower than her normal speed: " + str(lazy_speed))
+	check(state.poop_collected == 2 and level.sloth.lazy_pickups == 1, "Uncontrolled sloth collects poop automatically")
+	check(level.sloth.chore == level.sloth.Chore.RESTING and level.sloth.chore_time >= level.sloth.REST_AFTER_PICK.x - 0.1, "Sloth takes a long rest after each automatic pickup")
+	level._take_control(level.sloth)
+	key(KEY_J, true)
+	await frames(4)
+	key(KEY_J, false)
+	check(level.sloth.chore == level.sloth.Chore.RESTING and not level.sloth.automatic_follow, "Manual sloth keys always override the lazy chore")
+	var audio = root.get_node("AdventureAudio")
+	check(int(audio.played.get("rescue", 0)) >= 1 and int(audio.played.get("jump", 0)) >= 1 and int(audio.played.get("collect", 0)) >= 2 and int(audio.played.get("yawn", 0)) >= 1, "Rescue, jump, collect and yawn sounds play")
+	check(audio.music.stream is AudioStreamWAV and audio.music.stream.loop_mode == AudioStreamWAV.LOOP_FORWARD and audio.music_active(), "Cheerful music loops")
+	key(KEY_M, true)
+	await frames(2)
+	key(KEY_M, false)
+	check(not state.sound_on and not audio.music_active() and level.sound_button.text.ends_with("DESLIGADO"), "M turns sound and music off")
+	key(KEY_M, true)
+	await frames(2)
+	key(KEY_M, false)
+	check(state.sound_on and audio.music_active(), "M turns sound and music back on")
 	level.poop.stop_and_clear()
 	check(level.poop.objects.is_empty() and not level.poop.try_generate(dog), "Transition disables generation and clears poop")
 	level.followers.set_physics_process(true)
@@ -322,7 +363,7 @@ func _run() -> void:
 		await frames(15)
 	check(state.finished and state.completed_levels == [0, 1, 2, 3, 4], "All five castles completed and final state saved")
 	check(current_scene.name == "FestaDosAmigos", "Celebration scene loads with all dogs")
-	check(state.load_progress() and state.rescued_dogs.size() == 11 and state.finished and state.poop_collected == 1, "Rescues, collection count and completion load from disk")
+	check(state.load_progress() and state.rescued_dogs.size() == 11 and state.finished and state.poop_collected >= 2, "Rescues, collection count and completion load from disk")
 	var file = FileAccess.open(state.save_path, FileAccess.WRITE)
 	file.store_string("{invalid")
 	file.close()

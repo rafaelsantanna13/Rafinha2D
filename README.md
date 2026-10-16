@@ -22,7 +22,7 @@ Fófins sempre é a primeira cachorrinha. Tokio é fêmea e toda preta.
 | Guilherme Jedi | Z / X | B | Q: Força |
 
 H ou Esc abre Help/pausa. T alterna a ajuda dos amigos humanos; C reúne esses
-amigos. A preguiça continua controlável e vem automaticamente quando fica para
+amigos. M liga ou desliga o som e a música (também no menu e na Ajuda). A preguiça continua controlável e vem automaticamente quando fica para
 trás perto da borda. A câmera considera sua posição para mantê-la no enquadramento.
 As suas teclas sempre têm prioridade sobre esse acompanhamento.
 
@@ -45,7 +45,14 @@ JOGO ORIGINAL abre a cena mundo_rafinha.tscn preservada.
 ## Cocôs e progresso
 
 Cada cachorro resgatado pode produzir cocô no chão com um temporizador; há no
-máximo 12 objetos por fase. A preguiça usa I quando está perto. A coleta anima
+máximo 12 objetos por fase. A preguiça usa I quando está perto.
+
+Quando ninguém está comandando a preguiça, ela recolhe os cocôs sozinha, mas
+bem do jeito dela: ignora cocôs com menos de 6 segundos, cochila ("Zzz..."),
+boceja e se espreguiça por 2 segundos, anda a 70 px/s (a velocidade normal é
+180), demora 1,5 segundo para pegar e depois descansa de 8 a 12 segundos. Ela
+só vai atrás de cocôs no mesmo andar e dentro da tela, e desiste se demorar mais
+de 15 segundos. Qualquer tecla dela (J, K, U, I) tem prioridade imediata. A coleta anima
 os personagens e aumenta um contador. Objetos no chão são limpos nas transições.
 
 Fases, cães, opções e total recolhido ficam em user://castle_adventure_v1.json.
@@ -59,6 +66,16 @@ O armazenamento é local ao navegador, computador e endereço do site. Não há
 sincronização em nuvem nem transferência automática entre o preview e o site
 oficial. JOGAR confirma o reinício quando já existe progresso. Patinhas e a
 surpresa recomeçam ao revisitar a fase, mantendo os resgates e fases concluídas.
+
+## Som
+
+A música animada (um loop de 16 compassos a 150 BPM, em Dó maior) e os efeitos
+de pulo, resgate com latido, judô, Força, pum, cocô, patinha, porta e bocejo da
+preguiça são sintetizados por `scripts/generate_audio.py`, somente com a
+biblioteca padrão do Python. Nenhum áudio gravado ou de terceiros foi incluído.
+O autoload `AdventureAudio` toca a música em todas as telas, e a escolha de som
+ligado/desligado fica salva com o progresso. Os navegadores só liberam o áudio
+depois do primeiro clique ou tecla.
 
 ## Desenvolvimento e testes
 

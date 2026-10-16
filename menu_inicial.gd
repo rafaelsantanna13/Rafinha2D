@@ -76,7 +76,23 @@ func _build_menu() -> void:
 		assist.add_theme_color_override(state, Color("#243449"))
 	assist.add_theme_font_size_override("font_size", 19)
 	assist.toggled.connect(func(enabled: bool): AdventureState.assist_friends = enabled)
-	layout.add_child(assist)
+	var options = HBoxContainer.new()
+	options.alignment = BoxContainer.ALIGNMENT_CENTER
+	options.add_theme_constant_override("separation", 24)
+	layout.add_child(options)
+	options.add_child(assist)
+	var sound = CheckBox.new()
+	sound.text = "Som e música"
+	sound.button_pressed = AdventureState.sound_on
+	sound.add_theme_color_override("font_color", Color("#243449"))
+	for state in ["font_focus_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		sound.add_theme_color_override(state, Color("#243449"))
+	sound.add_theme_font_size_override("font_size", 19)
+	sound.toggled.connect(func(enabled: bool):
+		if enabled != AdventureState.sound_on:
+			AdventureAudio.toggle()
+	)
+	options.add_child(sound)
 	layout.add_child(UI.button("JOGO ORIGINAL", func(): get_tree().change_scene_to_file(GAME_SCENE)))
 	var note = UI.label("5 castelos, resgates e uma turma pronta para a aventura!", 17)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

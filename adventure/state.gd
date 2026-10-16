@@ -17,6 +17,7 @@ var finished: bool = false
 var poop_collected: int = 0
 var leader_name: String = "Rafinha"
 var assist_friends: bool = true
+var sound_on: bool = true
 var has_save: bool = false
 var saving_available: bool = true
 var save_notice: String = ""
@@ -79,7 +80,7 @@ func save_progress() -> bool:
 	var data = {
 		"version": SAVE_VERSION, "current_level": current_level, "unlocked_level": unlocked_level,
 		"completed_levels": completed_levels, "rescued_dogs": rescued_dogs,
-		"finished": finished, "poop_collected": poop_collected, "leader_name": leader_name, "assist_friends": assist_friends,
+		"finished": finished, "poop_collected": poop_collected, "leader_name": leader_name, "assist_friends": assist_friends, "sound_on": sound_on,
 	}
 	# A synchronous Web snapshot survives an immediate browser reload while
 	# Godot's IndexedDB filesystem is still synchronizing in the background.
@@ -174,6 +175,7 @@ func load_progress() -> bool:
 	finished = bool(parsed.get("finished", false)) and done.size() == Catalog.LEVELS.size()
 	leader_name = parsed.get("leader_name", "Rafinha") if parsed.get("leader_name", "Rafinha") in ["Rafinha", "Bigo"] else "Rafinha"
 	assist_friends = bool(parsed.get("assist_friends", true))
+	sound_on = bool(parsed.get("sound_on", true))
 	poop_collected = maxi(0, int(parsed.get("poop_collected", 0))) if parsed.get("poop_collected", 0) is float or parsed.get("poop_collected", 0) is int else 0
 	has_save = true
 	return true

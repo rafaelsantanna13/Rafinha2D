@@ -29,6 +29,8 @@ var manual_time: float = 0.0
 var coyote_time: float = 0.0
 var jumps_performed: int = 0
 var jump_buffer: float = 0.0
+var input_jump_time: float = 0.0
+var jump_pitch: float = 1.0
 var pum_cooldown: float = 0.0
 var spawn_point: Vector2
 var sprite: Sprite2D
@@ -81,6 +83,7 @@ func _physics_process(delta: float) -> void:
 		took_control.emit(self)
 	if actor_name == "Bigo" and Input.is_action_just_pressed("Tecla_bigopum") and pum_cooldown <= 0.0:
 		pum.get_node("AnimationPlayer").play("aparecer_sumir")
+		AdventureAudio.play("pum", randf_range(0.9, 1.15))
 		pum_cooldown = 0.5
 	if is_on_floor():
 		coyote_time = 0.12
@@ -88,6 +91,8 @@ func _physics_process(delta: float) -> void:
 		coyote_time = maxf(0.0, coyote_time - delta)
 		velocity += get_gravity() * delta
 	jump_buffer = 0.12 if jumping else maxf(0.0, jump_buffer - delta)
+	# Only jumps the child asked for make a sound; assisted hops stay quiet.
+	input_jump_time = 0.12 if jumping else maxf(0.0, input_jump_time - delta)
 	if can_auto_follow and automatic_follow and manual_time <= 0.0:
 		var separation: float = automatic_target.x - global_position.x
 		if absf(separation) > 25.0:
@@ -97,6 +102,9 @@ func _physics_process(delta: float) -> void:
 	if jump_buffer > 0.0 and coyote_time > 0.0:
 		velocity.y = JUMP_VELOCITY
 		jumps_performed += 1
+		if input_jump_time > 0.0:
+			AdventureAudio.play("jump", jump_pitch)
+			input_jump_time = 0.0
 		jump_buffer = 0.0
 		coyote_time = 0.0
 	if direction:
